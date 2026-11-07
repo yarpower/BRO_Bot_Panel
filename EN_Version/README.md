@@ -11,15 +11,25 @@ A powerful console multitool for Telegram. This is not just a bot; it's a true S
 * **Section 6: Settings** — Set bot commands (the `/` menu button in Telegram) and change the profile description.
 * **Section 7: Info** — Display bot profile, ping to servers, and chat stats.
 * **Section 8: Guide** — Built-in help that explains every single function.
-* **Section 9: Music** — Local audio player! Play your tracks, pause, and change the volume right from the console without alt-tabbing.
+* **Section 9: Music** — Full local player. Play track, pause, stop, smooth volume control, and current status display.
 * **Section 10: Theme Settings** — Customize your console appearance! Choose from 6 colors (red, green, blue, etc.) or a "Rainbow" mode for color-shifting text.
 * **Section 11: Utilities** — Base64 decoder, strong password generator, and an in-console calculator.
 * **Section 12: Timer (Delayed)** — Send messages with a custom delay in the background without freezing the panel.
 * **Section 13: Special Ops** — Coin flip (Heads/Tails), Rock-Paper-Scissors, and custom emoji spam.
 * **Section 14: User Info** — Retrieve Telegram user information by ID or @username (name, status).
 * **Section 15: System** — View the bot's uptime and current OS information.
-* **Section 16: Fake Generator** — Generate fake identities, bank cards (using the Luhn algorithm), vehicles, companies, and crypto wallets.
-* **Section 17: OSINT Check** — Analyze phones, emails, nicknames, and full names with generated links for manual search.
+* **Section 16: Fake Generator** — Generate not only identities and cards, but also passports, driver's licenses, medical records, diplomas, and tech data (IP, MAC, UUID).
+* **Section 17: OSINT Check** — Analyze phones, emails, nicknames, and full names. Expanded link list for search (Truecaller, Avito, HIBP, TikTok, Twitch, LinkedIn, etc.).
+
+## 📱 Remote Control from Telegram (NEW!)
+
+You can now manage the panel directly from the chat! The bot runs in the background and listens for commands:
+
+* 🔄 `/bot_nahui_perezagruska` — **Restart Bot**. The script completely reboots (console closes and reopens).
+* 🔴 `/bot_nahui_virubis` — **Shutdown Panel**. The console hides in the system, but the bot stays online in the background.
+* 🟢 `/bot_nahui_zapuskaisa` — **Start Panel**. The console window pops back up.
+
+*(Note: after starting the panel via Telegram, press Enter in the console to refresh the menu).*
 
 ## 🛠 Installation & Setup
 
