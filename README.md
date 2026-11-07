@@ -1,15 +1,23 @@
+[![Download ZIP](https://img.shields.io/badge/Download-ZIP-blue?style=for-the-badge&logo=github)](https://github.com/yarpower/BRO_Bot_Panel/archive/refs/heads/main.zip)
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python)
+![Aiogram](https://img.shields.io/badge/Aiogram-3.x-green?style=for-the-badge&logo=telegram)
+![Version](https://img.shields.io/badge/Version-23.0-orange?style=for-the-badge)
+
 # 🤖 BRO-PANEL BOT (V23)
 
-A powerful console multitool for Telegram. Choose your language below!
-Мощный консольный мультитул для Телеграма. Выбери свой язык ниже!
+Мощный консольный мультитул для Телеграма. / A powerful console multitool for Telegram.
 
-## 🌍 Choose Language / Выбор языка:
-* 🇬🇧 **[English Version](/EN_Version/README.md)** — Read the English documentation.
-* 🇷🇺 **[Русская версия](/RU_Version/README.md)** — Читать документацию на русском.
+🔗 **Навигация / Navigation:**
+[🇷🇺 Читать на русском](#-русская-версия) | [🇬🇧 Read in English](#-english-version)
 
 ---
-## 🚀 Quick Start / Быстрый старт
-1. Go to the folder with your language / Перейди в папку с нужным языком.
-2. Read the instructions there / Прочитай инструкцию там.
 
-*💻 Code written together with **DeepSeek** AI. Bro, we made it!*
+## 🇷🇺 Русская версия
+
+Это не просто бот, а настоящий швейцарский нож. Он умеет делать OSINT-пробив, генерировать фейковые данные, спамить, играть музыку и даже **управляться удаленно прямо из Телеграма**. Идеально для пранка над друзьями!
+
+### 🚀 Быстрая установка (через терминал)
+
+1. **Склонируй репозиторий:**
+   ```bash
+   git clone https://github.com/yarpower/BRO_Bot_Panel.git
