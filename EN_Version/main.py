@@ -3,6 +3,8 @@ import os
 import time
 import random
 import base64
+import shutil
+import ctypes
 
 try:
     import pyglet
@@ -20,7 +22,7 @@ import config
 bot = Bot(token=config.BOT_TOKEN)
 
 # ==========================================
-# COLOR ENGINE (ANSI codes)
+# COLOR ENGINE
 # ==========================================
 os.system('') 
 
@@ -33,7 +35,6 @@ CURRENT_THEME = "cyan"
 def colorize(text, theme=None):
     global CURRENT_THEME
     t = theme if theme else CURRENT_THEME
-    
     if t == "rainbow":
         colors = ["\033[91m", "\033[93m", "\033[92m", "\033[96m", "\033[94m", "\033[95m"]
         rainbow_text = ""
@@ -41,12 +42,86 @@ def colorize(text, theme=None):
             if char in ['\n', '\t']: rainbow_text += char
             else: rainbow_text += colors[i % len(colors)] + char
         return rainbow_text + "\033[0m"
-        
     if t in THEMES: return f"{THEMES[t]}{text}\033[0m"
     return text
 
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
+
+# ==========================================
+# SMART WINDOW SIZE SELECTION
+# ==========================================
+def ask_window_size():
+    clear_screen()
+    print("╔══════════════════════════════════════════════════╗")
+    print("║             CHOOSE PANEL WINDOW SIZE             ║")
+    print("╠══════════════════════════════════════════════════╣")
+    print("║  1. 25% (Small)                                  ║")
+    print("║  2. 50% (Medium)                                 ║")
+    print("║  3. 65% (Normal)                                 ║")
+    print("║  4. 85% (Large)                                  ║")
+    print("║  5. 100% (Full Screen)                           ║")
+    print("╚══════════════════════════════════════════════════╝")
+    
+    while True:
+        choice = input("\nYour choice (1-5): ")
+        
+        try:
+            user32 = ctypes.windll.user32
+            sw = user32.GetSystemMetrics(0)
+            sh = user32.GetSystemMetrics(1)
+            # Safe calculation to prevent window from going off-screen
+            max_cols = int(sw / 10) 
+            max_lines = int(sh / 22) 
+            if max_cols > 200: max_cols = 200 
+        except:
+            max_cols, max_lines = 150, 45
+
+        try:
+            if choice == "1":
+                os.system('mode con: cols=80 lines=25'); break
+            elif choice == "2":
+                os.system('mode con: cols=100 lines=30'); break
+            elif choice == "3":
+                os.system(f'mode con: cols={int(max_cols*0.65)} lines={int(max_lines*0.65)}'); break
+            elif choice == "4":
+                os.system(f'mode con: cols={int(max_cols*0.85)} lines={int(max_lines*0.85)}'); break
+            elif choice == "5":
+                os.system(f'mode con: cols={max_cols} lines={max_lines}'); break
+            else:
+                print("Wrong choice, bro. Press 1-5.")
+        except Exception as e:
+            print(f"Failed to resize: {e}")
+            break
+
+# ==========================================
+# SMART PANEL DRAWING
+# ==========================================
+def draw_panel(title, options):
+    cols = shutil.get_terminal_size().columns
+    width = max(60, cols - 4) 
+    
+    print(colorize("╔" + "═" * width + "╗", "cyan"))
+    
+    title_str = f"  {title}  "
+    left_pad = (width - len(title_str)) // 2
+    right_pad = width - len(title_str) - left_pad
+    print(colorize("║" + " " * left_pad + title_str + " " * right_pad + "║", "cyan"))
+    print(colorize("╠" + "═" * width + "╣", "cyan"))
+    
+    col_width = (width - 1) // 2
+    right_width = width - 1 - col_width
+    
+    for i in range(0, len(options), 2):
+        left_opt = options[i]
+        right_opt = options[i+1] if i+1 < len(options) else ""
+        
+        left_str = f" {left_opt}"[:col_width].ljust(col_width)
+        right_str = f" {right_opt}"[:right_width].ljust(right_width)
+        
+        print(colorize(f"║{left_str}│{right_str}║", "cyan"))
+            
+    print(colorize("╚" + "═" * width + "╝", "cyan"))
 
 def get_file_type(path):
     ext = os.path.splitext(path)[1].lower()
@@ -77,10 +152,11 @@ def pause():
 async def menu_text():
     while True:
         clear_screen()
-        print(colorize("=== 1. BRO, HERE IS TEXT ===", "cyan"))
-        print("1. Regular text\n2. HTML (bold)\n3. 'Typing...' effect\n4. Reverse text\n5. CAPS (SCREAM)")
-        print("6. Meme text\n7. Base64 Encryption\n8. SECRET TEXT (Spoiler)\n0. Back")
-        
+        draw_panel("1. [TXT] BRO, HERE IS TEXT", [
+            "1. Regular text", "2. HTML (bold)", "3. 'Typing...' effect",
+            "4. Reverse text", "5. CAPS (SCREAM)", "6. Meme text",
+            "7. Base64 Encryption", "8. SECRET TEXT", "0. Back to menu"
+        ])
         choice = await asyncio.to_thread(input, colorize("\nWhat do you choose, bro? -> ", "green"))
         if choice == "0": break
         elif choice in ["1", "2", "3", "4", "5", "6", "7", "8"]:
@@ -106,16 +182,16 @@ async def menu_text():
 async def menu_media():
     while True:
         clear_screen()
-        print(colorize("=== 2. BRO, HERE IS MEDIA ===", "cyan"))
-        print("1. File\n2. Location\n3. Contact\n4. Sticker\n5. Video Note\n0. Back")
-        
+        draw_panel("2. [MED] BRO, HERE IS MEDIA", [
+            "1. Send file", "2. Location", "3. Contact", 
+            "4. Sticker", "5. Video Note", "0. Back to menu"
+        ])
         choice = await asyncio.to_thread(input, colorize("\nWhat do you choose, bro? -> ", "green"))
         if choice == "0": break
-        
         elif choice == "1":
             path = (await asyncio.to_thread(input, colorize("Path to file:\n> ", "green"))).strip('"\' ')
             if not os.path.exists(path): print(colorize("[ERROR] No file.", "red")); await pause(); continue
-            caption = await asyncio.to_thread(input, colorize("Caption (Enter - skip):\n> ", "green"))
+            caption = await asyncio.to_thread(input, colorize("Caption:\n> ", "green"))
             try: await smart_send_file(config.CHAT_ID, path, caption); print(colorize("[BRO, SENT!]", "green"))
             except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
@@ -149,22 +225,23 @@ async def menu_media():
 async def menu_spam():
     while True:
         clear_screen()
-        print(colorize("=== 3. BRO, HERE IS SPAM ===", "cyan"))
-        print("1. Text\n2. File\n3. SMART SPAM (random)\n4. STONES 🗿\n5. INFINITE\n0. Back")
-        
+        draw_panel("3. [SPM] BRO, HERE IS SPAM", [
+            "1. Text", "2. File", "3. SMART SPAM",
+            "4. STONES", "5. INFINITE", "0. Back to menu"
+        ])
         choice = await asyncio.to_thread(input, colorize("\nWhat do you choose, bro? -> ", "green"))
         if choice == "0": break
         elif choice in ["1", "2", "3", "4", "5"]:
             if choice == "1": text = await asyncio.to_thread(input, colorize("Text:\n> ", "green")); path=None
             elif choice == "2": path = (await asyncio.to_thread(input, colorize("Path to file:\n> ", "green"))).strip('"\' '); text=None
-            elif choice == "4": text = "🗿" * 50; path=None
+            elif choice == "4": text = "STONE " * 50; path=None
             elif choice == "5": text = await asyncio.to_thread(input, colorize("Text:\n> ", "green")); path=None
             else: text = await asyncio.to_thread(input, colorize("Text:\n> ", "green")); path=None
 
             if path and not os.path.exists(path): print(colorize("[ERROR] No file.", "red")); await pause(); continue
             try:
                 count = 999999 if choice == "5" else int(await asyncio.to_thread(input, colorize("How many times? ", "green")))
-                delay = "random" if choice in ["3", "4", "5"] else float(await asyncio.to_thread(input, colorize(f"Delay (Enter for {config.DEFAULT_SPAM_DELAY}): ", "green")) or config.DEFAULT_SPAM_DELAY)
+                delay = "random" if choice in ["3", "4", "5"] else float(await asyncio.to_thread(input, colorize(f"Delay: ", "green")) or config.DEFAULT_SPAM_DELAY)
             except ValueError: 
                 print(colorize("[ERROR] Need a number!", "red"))
                 await pause()
@@ -175,9 +252,9 @@ async def menu_spam():
                 try:
                     if path: await smart_send_file(config.CHAT_ID, path)
                     else: await bot.send_message(config.CHAT_ID, text)
-                    print(colorize(f"[{i+1}/{count if count < 999999 else '∞'}] ok", "green"))
+                    print(colorize(f"[{i+1}/{count if count < 999999 else 'INF'}] ok", "green"))
                     await asyncio.sleep(random.uniform(1.5, 3.5) if delay == "random" else delay)
-                except Exception as e: print(colorize(f"[TG BAN] {e}", "red")); break
+                except Exception as e: print(colorize(f"[BAN] {e}", "red")); break
             await pause()
 
 # ==========================================
@@ -186,13 +263,16 @@ async def menu_spam():
 async def menu_features():
     while True:
         clear_screen()
-        print(colorize("=== 4. TRICKS ===", "cyan"))
-        print("1. Poll\n2. Pin\n3. Dice\n4. Darts\n5. Basketball\n6. Roulette\n7. Football\n8. Random (1-100)\n0. Back")
+        draw_panel("4. [FUN] TRICKS", [
+            "1. Poll", "2. Pin", "3. Dice",
+            "4. Darts", "5. Basketball", "6. Roulette",
+            "7. Football", "8. Random (1-100)", "0. Back to menu"
+        ])
         choice = await asyncio.to_thread(input, colorize("\nChoice: ", "green"))
         if choice == "0": break
         elif choice == "1":
             q = await asyncio.to_thread(input, "Question: "); o1 = await asyncio.to_thread(input, "Opt 1: "); o2 = await asyncio.to_thread(input, "Opt 2: ")
-            try: await bot.send_poll(config.CHAT_ID, q, [o1, o2]); print(colorize("[POLL CREATED!]", "green"))
+            try: await bot.send_poll(config.CHAT_ID, q, [o1, o2]); print(colorize("[POLL!]", "green"))
             except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
         elif choice == "2":
@@ -202,12 +282,12 @@ async def menu_features():
             except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
         elif choice in ["3", "4", "5", "6", "7"]:
-            emoji = {"3":"🎲", "4":"🎯", "5":"🏀", "6":"🎰", "7":"⚽"}[choice]
-            try: await bot.send_dice(config.CHAT_ID, emoji=emoji); print(colorize("[GAME STARTED!]", "green"))
+            emoji = {"3":"🎲", "4":"🎯", "5":"🏀", "6":"🎰", "7":"⚽"}[choice] 
+            try: await bot.send_dice(config.CHAT_ID, emoji=emoji); print(colorize("[GAME!]", "green"))
             except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
         elif choice == "8":
-            try: await bot.send_message(config.CHAT_ID, f"Number: {random.randint(1, 100)}"); print(colorize("[NUMBER SENT!]", "green"))
+            try: await bot.send_message(config.CHAT_ID, f"Number: {random.randint(1, 100)}"); print(colorize("[NUMBER!]", "green"))
             except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
 
@@ -217,17 +297,20 @@ async def menu_features():
 async def menu_admin():
     while True:
         clear_screen()
-        print(colorize("=== 5. ADMIN PANEL ===", "cyan"))
-        print("1. Mute all\n2. Unmute all\n3. Change title\n4. Change description")
-        print("5. Ban by ID\n6. Ban by @user\n7. Kick by ID\n8. Kick by @user\n9. Delete message\n0. Back")
+        draw_panel("5. [ADM] ADMIN PANEL", [
+            "1. Mute all", "2. Unmute all", "3. Change title",
+            "4. Change description", "5. Ban by ID", "6. Ban by @user",
+            "7. Kick by ID", "8. Kick by @user", "9. Delete message",
+            "0. Back to menu"
+        ])
         choice = await asyncio.to_thread(input, colorize("\nChoice: ", "green"))
         if choice == "0": break
         elif choice == "1":
-            try: await bot.set_chat_permissions(config.CHAT_ID, ChatPermissions(can_send_messages=False)); print(colorize("[MUTED ALL!]", "green"))
+            try: await bot.set_chat_permissions(config.CHAT_ID, ChatPermissions(can_send_messages=False)); print(colorize("[MUTED!]", "green"))
             except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
         elif choice == "2":
-            try: await bot.set_chat_permissions(config.CHAT_ID, ChatPermissions(can_send_messages=True, can_send_media_messages=True, can_send_other_messages=True)); print(colorize("[UNMUTED ALL!]", "green"))
+            try: await bot.set_chat_permissions(config.CHAT_ID, ChatPermissions(can_send_messages=True, can_send_media_messages=True, can_send_other_messages=True)); print(colorize("[UNMUTED!]", "green"))
             except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
         elif choice == "3":
@@ -257,18 +340,15 @@ async def menu_admin():
             await pause()
 
 # ==========================================
-# SECTION 6-8: SETTINGS, INFO, GUIDE
+# SECTION 6-10
 # ==========================================
 async def menu_bot_settings():
     while True:
-        clear_screen(); print(colorize("=== 6. BOT SETTINGS ===", "cyan"))
-        print("1. Set commands\n2. Bot description\n0. Back")
+        clear_screen(); draw_panel("6. [SET] BOT SETTINGS", ["1. Set commands", "2. Bot description", "0. Back"])
         choice = await asyncio.to_thread(input, colorize("\nChoice: ", "green"))
         if choice == "0": break
         elif choice == "1":
-            try:
-                await bot.set_my_commands([BotCommand(command="start", description="Start"), BotCommand(command="help", description="Help")])
-                print(colorize("[COMMANDS SET!]", "green"))
+            try: await bot.set_my_commands([BotCommand(command="start", description="Start")]); print(colorize("[OK!]", "green"))
             except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
         elif choice == "2":
@@ -279,18 +359,16 @@ async def menu_bot_settings():
 
 async def menu_settings():
     while True:
-        clear_screen(); print(colorize("=== 7. INFO ===", "cyan"))
-        print("1. Profile\n2. Ping\n3. Chat info\n4. Member count\n0. Back")
+        clear_screen(); draw_panel("7. [INF] INFO", ["1. Profile", "2. Ping", "3. Chat info", "4. Members", "0. Back"])
         choice = await asyncio.to_thread(input, colorize("\nChoice: ", "green"))
         if choice == "0": break
         elif choice == "1":
-            me = await bot.get_me(); print(colorize(f"\nName: {me.first_name}\nUser: @{me.username}\nID: {me.id}", "white")); await pause()
+            me = await bot.get_me(); print(colorize(f"\nName: {me.first_name}\nUser: @{me.username}", "white")); await pause()
         elif choice == "2":
             start = time.time(); await bot.get_me(); print(colorize(f"\nPing: {round((time.time() - start) * 1000, 2)} ms", "white")); await pause()
         elif choice == "3":
             try:
-                chat = await bot.get_chat(config.CHAT_ID)
-                print(colorize(f"\nTitle: {chat.title}\nID: {chat.id}\nType: {chat.type}", "white"))
+                chat = await bot.get_chat(config.CHAT_ID); print(colorize(f"\nTitle: {chat.title}", "white"))
             except Exception as e: print(colorize(f"\n[ERROR] {e}", "red"))
             await pause()
         elif choice == "4":
@@ -300,64 +378,39 @@ async def menu_settings():
 
 async def menu_help():
     while True:
-        clear_screen(); print(colorize("=== 8. GUIDE ===", "cyan"))
-        print("1. Text\n2. Media\n3. Spam\n4. Tricks\n5. Admin\n6. Settings\n7. Info\n8. Music\n0. Back")
-        choice = await asyncio.to_thread(input, colorize("\nWhich section to explain? ", "green"))
-        clear_screen()
-        if choice == "1": print(colorize("EXPLANATION FOR TEXT (HTML, Base64, etc.)", "yellow")); await pause()
-        elif choice == "2": print(colorize("EXPLANATION FOR MEDIA (Notes, Geo)", "yellow")); await pause()
-        elif choice == "3": print(colorize("EXPLANATION FOR SPAM (Smart, Infinite)", "yellow")); await pause()
-        elif choice == "4": print(colorize("EXPLANATION FOR GAMES AND POLLS", "yellow")); await pause()
-        elif choice == "5": print(colorize("EXPLANATION FOR BANS AND MUTES", "yellow")); await pause()
-        elif choice == "6": print(colorize("EXPLANATION FOR BOT COMMANDS", "yellow")); await pause()
-        elif choice == "7": print(colorize("EXPLANATION FOR PING AND STATS", "yellow")); await pause()
-        elif choice == "8": print(colorize("EXPLANATION FOR MUSIC (Pyglet)", "yellow")); await pause()
-        elif choice == "0": break
+        clear_screen(); draw_panel("8. [HLP] GUIDE", ["1. Text", "2. Media", "3. Spam", "4. Tricks", "5. Admin", "6. Settings", "7. Info", "8. Music", "0. Back"])
+        choice = await asyncio.to_thread(input, colorize("\nWhich section? ", "green"))
+        if choice == "0": break
+        print(colorize("\nEXPLANATION FOR THIS SECTION...", "yellow")); await pause()
 
-# ==========================================
-# SECTION 9: MUSIC
-# ==========================================
 async def menu_music():
     global player
     if not AUDIO_OK: print(colorize("\n[ERROR] Pyglet is not installed!", "red")); await pause(); return
-
     while True:
-        clear_screen(); print(colorize("=== 9. MUSIC ===", "cyan"))
-        print(colorize("[STATUS] " + ("Playing..." if player.playing else "Silence/Paused"), "green"))
-        print("1. Play\n2. Pause/Resume\n3. Stop\n4. Volume UP (+10%)\n5. Volume DOWN (-10%)\n0. Back")
-        
+        clear_screen(); draw_panel("9. [MUS] MUSIC", ["1. Play", "2. Pause/Resume", "3. Stop", "4. Vol UP (+10%)", "5. Vol DOWN (-10%)", "0. Back"])
+        print(colorize("[STATUS] " + ("Playing..." if player.playing else "Silence"), "green"))
         choice = await asyncio.to_thread(input, colorize("\nChoice: ", "green"))
         if choice == "0": break
         elif choice == "1":
-            path = (await asyncio.to_thread(input, "Path to mp3:\n> ")).strip('"\' ')
-            if not os.path.exists(path): print(colorize("[ERROR] No file", "red")); await pause(); continue
-            try:
-                player = pyglet.media.Player(); source = await asyncio.to_thread(pyglet.media.load, path); player.queue(source); player.play()
-                print(colorize("[MUSIC STARTED!]", "green"))
+            path = (await asyncio.to_thread(input, "Path to mp3: ")).strip('"\' ')
+            try: 
+                player = pyglet.media.Player()
+                source = await asyncio.to_thread(pyglet.media.load, path, streaming=True)
+                player.queue(source); player.play(); print(colorize("[PLAYING!]", "green"))
             except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
         elif choice == "2":
             if player.playing: player.pause(); print(colorize("[PAUSED]", "green"))
             else: player.play(); print(colorize("[RESUMED]", "green"))
             await pause()
-        elif choice == "3":
-            player.pause(); player.seek(0); print(colorize("[STOPPED]", "green")); await pause()
-        elif choice == "4":
-            player.volume = min(1.0, player.volume + 0.1); print(colorize(f"[VOLUME: {int(player.volume*100)}%]", "green")); await pause()
-        elif choice == "5":
-            player.volume = max(0.0, player.volume - 0.1); print(colorize(f"[VOLUME: {int(player.volume*100)}%]", "green")); await pause()
+        elif choice == "3": player.pause(); player.seek(0); print(colorize("[STOPPED]", "green")); await pause()
+        elif choice == "4": player.volume = min(1.0, player.volume + 0.1); print(colorize(f"[VOLUME: {int(player.volume*100)}%]", "green")); await pause()
+        elif choice == "5": player.volume = max(0.0, player.volume - 0.1); print(colorize(f"[VOLUME: {int(player.volume*100)}%]", "green")); await pause()
 
-# ==========================================
-# SECTION 10: THEME
-# ==========================================
 async def menu_theme():
     global CURRENT_THEME
     while True:
-        clear_screen()
-        print(colorize("=== 10. THEME SETTINGS ===", "cyan"))
-        print("1. 🔴 Red\n2. 🟢 Green\n3. 🔵 Blue\n4. 🟡 Yellow")
-        print("5. 🟣 Purple\n6. 🔷 Cyan\n7. 🌈 RAINBOW\n0. Back")
-        
+        clear_screen(); draw_panel("10. [THM] THEME", ["1. (RED) Red", "2. (GRN) Green", "3. (BLU) Blue", "4. (YLW) Yellow", "5. (PPL) Purple", "6. (CYN) Cyan", "7. (RGB) RAINBOW", "0. Back"])
         choice = await asyncio.to_thread(input, colorize("\nChoice: ", "green"))
         if choice == "0": break
         elif choice == "1": CURRENT_THEME = "red"
@@ -374,6 +427,7 @@ async def menu_theme():
 # MAIN MENU
 # ==========================================
 async def main():
+    ask_window_size()
     clear_screen()
     print(colorize("Starting...", "yellow")); await bot.delete_webhook()
     try:
@@ -382,17 +436,14 @@ async def main():
 
     while True:
         clear_screen()
-        print(colorize("╔════════════════════════════════════════════════╗", "cyan"))
-        print(colorize("║          🤖 BRO-PANEL BOT V11 🤖             ║", "cyan"))
-        print(colorize("╠════════════════════════════════════════════════╣", "cyan"))
-        print(colorize("║ 1. 📝 TEXT           │ 6. ⚙️ BOT SETTINGS     ║", "cyan"))
-        print(colorize("║ 2. 📁 MEDIA          │ 7. ℹ️ INFO & PING       ║", "cyan"))
-        print(colorize("║ 3. 💣 SPAM ZONE      │ 8. 📖 GUIDE (HELP)     ║", "cyan"))
-        print(colorize("║ 4. 🎲 TRICKS         │ 9. 🎵 MUSIC            ║", "cyan"))
-        print(colorize("║ 5. 👑 ADMIN PANEL    │ 10. 🎨 THEME SETTINGS  ║", "cyan"))
-        print(colorize("╠════════════════════════════════════════════════╣", "cyan"))
-        print(colorize("║ 0. 🚪 EXIT                                     ║", "cyan"))
-        print(colorize("╚════════════════════════════════════════════════╝", "cyan"))
+        draw_panel("BRO-PANEL BOT V14", [
+            "1. [TXT] TEXT", "6. [SET] BOT SETTINGS",
+            "2. [MED] MEDIA", "7. [INF] INFO & PING",
+            "3. [SPM] SPAM ZONE", "8. [HLP] GUIDE (HELP)",
+            "4. [FUN] TRICKS", "9. [MUS] MUSIC",
+            "5. [ADM] ADMIN PANEL", "10. [THM] THEME",
+            "0. [EXT] EXIT", ""
+        ])
         
         choice = await asyncio.to_thread(input, colorize("\nChoose section (0-10): ", "green"))
 
