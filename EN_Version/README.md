@@ -1,4 +1,4 @@
-# 🤖 BRO-PANEL BOT (V17.1)
+# 🤖 BRO-PANEL BOT (V21)
 
 A powerful console multitool for Telegram. This is not just a bot; it's a true Swiss Army knife for managing chats, sending media, spamming, and even playing music straight from your command line!
 
