@@ -12,6 +12,7 @@ A powerful console multitool for Telegram. This is not just a bot; it's a true S
 * **Section 7: Info** — Display bot profile, ping to servers, and chat stats.
 * **Section 8: Guide** — Built-in help that explains every single function.
 * **Section 9: Music** — Local audio player! Play your tracks, pause, and change the volume right from the console without alt-tabbing.
+* **Section 10: Theme Settings** — Customize your console appearance! Choose from 6 colors (red, green, blue, etc.) or a "Rainbow" mode for color-shifting text.*
 
 ## 🛠 Installation & Setup
 
