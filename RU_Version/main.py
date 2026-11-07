@@ -4,14 +4,12 @@ import time
 import random
 import base64
 
-# Пытаемся подключить pyglet для музыки
 try:
     import pyglet
-    pyglet.options['shadow_window'] = False # Чтобы не открывалось лишнее окно
+    pyglet.options['shadow_window'] = False
     player = pyglet.media.Player()
     AUDIO_OK = True
 except ImportError:
-    print("[ВНИМАНИЕ] Pyglet не установлен. Выполни в консоли: pip install pyglet")
     AUDIO_OK = False
 
 from aiogram import Bot
@@ -20,6 +18,32 @@ from aiogram.enums import ChatAction
 import config
 
 bot = Bot(token=config.BOT_TOKEN)
+
+# ==========================================
+# ДВИЖОК ЦВЕТОВ (ANSI-коды)
+# ==========================================
+os.system('') 
+
+THEMES = {
+    "red": "\033[91m", "green": "\033[92m", "yellow": "\033[93m",
+    "blue": "\033[94m", "purple": "\033[95m", "cyan": "\033[96m", "white": "\033[97m"
+}
+CURRENT_THEME = "cyan"
+
+def colorize(text, theme=None):
+    global CURRENT_THEME
+    t = theme if theme else CURRENT_THEME
+    
+    if t == "rainbow":
+        colors = ["\033[91m", "\033[93m", "\033[92m", "\033[96m", "\033[94m", "\033[95m"]
+        rainbow_text = ""
+        for i, char in enumerate(text):
+            if char in ['\n', '\t']: rainbow_text += char
+            else: rainbow_text += colors[i % len(colors)] + char
+        return rainbow_text + "\033[0m"
+        
+    if t in THEMES: return f"{THEMES[t]}{text}\033[0m"
+    return text
 
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -36,7 +60,6 @@ def get_file_type(path):
 async def smart_send_file(chat_id, path, caption=""):
     file_type = get_file_type(path)
     file = FSInputFile(path)
-    
     if file_type == 'photo': await bot.send_photo(chat_id=chat_id, photo=file, caption=caption)
     elif file_type == 'video': await bot.send_video(chat_id=chat_id, video=file, caption=caption)
     elif file_type == 'animation': await bot.send_animation(chat_id=chat_id, animation=file, caption=caption)
@@ -45,7 +68,8 @@ async def smart_send_file(chat_id, path, caption=""):
     else: await bot.send_document(chat_id=chat_id, document=file, caption=caption)
 
 def pause():
-    return asyncio.to_thread(input, "\n[БРО, ГОТОВО!] Жми Enter, чтобы продолжить...")
+    print(colorize("\n[БРО, ГОТОВО!] Жми Enter, чтобы продолжить...", "yellow"))
+    return asyncio.to_thread(input)
 
 # ==========================================
 # РАЗДЕЛ 1: ТЕКСТ
@@ -53,37 +77,27 @@ def pause():
 async def menu_text():
     while True:
         clear_screen()
-        print("=== 1. БРО, ТУТ ТЕКСТ ===")
-        print("1. Кинуть обычный текст")
-        print("2. Кинуть красивый текст (HTML: <b>жирный</b>)")
-        print("3. Эффект 'Бот печатает...'")
-        print("4. Текст наоборот (Перевертыш)")
-        print("5. КАПС (ОРЁМ)")
-        print("6. Мемный текст (ЧеРеДоВаНиЕ)")
-        print("7. Base64 Шифрование (секретка)")
-        print("8. СЕКРЕТНЫЙ ТЕКСТ (Спойлер, скрыт под черным)")
-        print("0. Назад в главное")
+        print(colorize("=== 1. БРО, ТУТ ТЕКСТ ===", "cyan"))
+        print("1. Обычный текст\n2. HTML (жирный)\n3. Эффект 'Печатает...'\n4. Перевертыш\n5. КАПС (ОРЁМ)")
+        print("6. Мемный текст\n7. Base64 Шифрование\n8. СЕКРЕТНЫЙ ТЕКСТ (Спойлер)\n0. Назад")
         
-        choice = await asyncio.to_thread(input, "\nЧё выбираешь, бро? ")
+        choice = await asyncio.to_thread(input, colorize("\nЧё выбираешь, бро? -> ", "green"))
         if choice == "0": break
         elif choice in ["1", "2", "3", "4", "5", "6", "7", "8"]:
-            text = await asyncio.to_thread(input, "Вводи текст, бро:\n> ")
-            
+            text = await asyncio.to_thread(input, colorize("Вводи текст, бро:\n> ", "green"))
             if choice == "4": text = text[::-1]
             elif choice == "5": text = text.upper()
             elif choice == "6": text = ''.join(c.upper() if i%2==0 else c.lower() for i,c in enumerate(text))
             elif choice == "7": text = base64.b64encode(text.encode()).decode()
             elif choice == "8": text = f"<tg-spoiler>{text}</tg-spoiler>"
-                
             try:
                 mode = "HTML" if choice in ["2", "8"] else None
                 if choice == "3":
                     await bot.send_chat_action(config.CHAT_ID, ChatAction.TYPING)
                     await asyncio.sleep(1.5)
-                
                 await bot.send_message(chat_id=config.CHAT_ID, text=text, parse_mode=mode)
-                print("[БРО, ОТПРАВЛЕНО!]")
-            except Exception as e: print(f"[ОШИБКА] {e}")
+                print(colorize("[БРО, ОТПРАВЛЕНО!]", "green"))
+            except Exception as e: print(colorize(f"[ОШИБКА] {e}", "red"))
             await pause()
 
 # ==========================================
@@ -92,52 +106,41 @@ async def menu_text():
 async def menu_media():
     while True:
         clear_screen()
-        print("=== 2. БРО, ТУТ ФАЙЛЫ И МЕДИА ===")
-        print("1. Кинуть файл (авто-определение)")
-        print("2. Кинуть геолокацию (точка на карте)")
-        print("3. Кинуть фейковый контакт")
-        print("4. Кинуть стикер")
-        print("5. Кинуть кружок (круглое видео)")
-        print("0. Назад в главное")
+        print(colorize("=== 2. БРО, ТУТ ФАЙЛЫ И МЕДИА ===", "cyan"))
+        print("1. Файл\n2. Геолокация\n3. Контакт\n4. Стикер\n5. Кружок\n0. Назад")
         
-        choice = await asyncio.to_thread(input, "\nЧё выбираешь, бро? ")
+        choice = await asyncio.to_thread(input, colorize("\nЧё выбираешь, бро? -> ", "green"))
         if choice == "0": break
         
         elif choice == "1":
-            path_input = await asyncio.to_thread(input, "Путь к файлу (перетащи сюда):\n> ")
-            path = path_input.strip('"\' ')
-            if not os.path.exists(path): print("[ОШИБКА] Нет такого файла, бро."); await pause(); continue
-            caption = await asyncio.to_thread(input, "Подпись (Enter - пропустить):\n> ")
-            try: await smart_send_file(config.CHAT_ID, path, caption); print("[БРО, ОТПРАВЛЕНО!]")
-            except Exception as e: print(f"[ОШИБКА] {e}")
+            path = (await asyncio.to_thread(input, colorize("Путь к файлу:\n> ", "green"))).strip('"\' ')
+            if not os.path.exists(path): print(colorize("[ОШИБКА] Нет файла.", "red")); await pause(); continue
+            caption = await asyncio.to_thread(input, colorize("Подпись (Enter - пропустить):\n> ", "green"))
+            try: await smart_send_file(config.CHAT_ID, path, caption); print(colorize("[БРО, ОТПРАВЛЕНО!]", "green"))
+            except Exception as e: print(colorize(f"[ОШИБКА] {e}", "red"))
             await pause()
-
         elif choice == "2":
-            lat = await asyncio.to_thread(input, "Широта (55.7558):\n> ")
-            lon = await asyncio.to_thread(input, "Долгота (37.6173):\n> ")
-            try: await bot.send_location(config.CHAT_ID, latitude=float(lat), longitude=float(lon)); print("[БРО, КИНУЛ ЛОКАЦИЮ!]")
-            except Exception as e: print(f"[ОШИБКА] {e}")
+            try:
+                lat = await asyncio.to_thread(input, colorize("Широта:\n> ", "green"))
+                lon = await asyncio.to_thread(input, colorize("Долгота:\n> ", "green"))
+                await bot.send_location(config.CHAT_ID, float(lat), float(lon)); print(colorize("[БРО, ЛОКАЦИЯ!]", "green"))
+            except Exception as e: print(colorize(f"[ОШИБКА] {e}", "red"))
             await pause()
-
         elif choice == "3":
-            phone = await asyncio.to_thread(input, "Телефон (+7999...):\n> ")
-            name = await asyncio.to_thread(input, "Имя:\n> ")
-            try: await bot.send_contact(config.CHAT_ID, phone_number=phone, first_name=name); print("[БРО, КОНТАКТ УЛЕТЕЛ!]")
-            except Exception as e: print(f"[ОШИБКА] {e}")
+            phone = await asyncio.to_thread(input, colorize("Телефон:\n> ", "green"))
+            name = await asyncio.to_thread(input, colorize("Имя:\n> ", "green"))
+            try: await bot.send_contact(config.CHAT_ID, phone, name); print(colorize("[БРО, КОНТАКТ!]", "green"))
+            except Exception as e: print(colorize(f"[ОШИБКА] {e}", "red"))
             await pause()
-
         elif choice == "4":
-            path_input = await asyncio.to_thread(input, "Путь к стикеру (.webp):\n> ")
-            path = path_input.strip('"\' ')
-            try: await bot.send_sticker(config.CHAT_ID, sticker=FSInputFile(path)); print("[БРО, СТИКЕР ЗАЛЕТЕЛ!]")
-            except Exception as e: print(f"[ОШИБКА] {e}")
+            path = (await asyncio.to_thread(input, colorize("Путь к стикеру:\n> ", "green"))).strip('"\' ')
+            try: await bot.send_sticker(config.CHAT_ID, FSInputFile(path)); print(colorize("[БРО, СТИКЕР!]", "green"))
+            except Exception as e: print(colorize(f"[ОШИБКА] {e}", "red"))
             await pause()
-
         elif choice == "5":
-            path_input = await asyncio.to_thread(input, "Путь к видео для кружка (.mp4):\n> ")
-            path = path_input.strip('"\' ')
-            try: await bot.send_video_note(config.CHAT_ID, video_note=FSInputFile(path)); print("[БРО, КРУЖОК ЗАПИСАН!]")
-            except Exception as e: print(f"[ОШИБКА] {e}")
+            path = (await asyncio.to_thread(input, colorize("Путь к видео (.mp4):\n> ", "green"))).strip('"\' ')
+            try: await bot.send_video_note(config.CHAT_ID, FSInputFile(path)); print(colorize("[БРО, КРУЖОК!]", "green"))
+            except Exception as e: print(colorize(f"[ОШИБКА] {e}", "red"))
             await pause()
 
 # ==========================================
@@ -146,54 +149,35 @@ async def menu_media():
 async def menu_spam():
     while True:
         clear_screen()
-        print("=== 3. БРО, ТУТ СПАМ (ОСТОРОЖНО!) ===")
-        print("1. Текстовый спам (контролируемый)")
-        print("2. Спам файлом/картинкой")
-        print("3. УМНЫЙ СПАМ (ТГ не так быстро банит)")
-        print("4. СПАМ КАМНЯМИ (🗿) - жестко")
-        print("5. БЕСКОНЕЧНЫЙ СПАМ (Остановить: Ctrl+C в консоли)")
-        print("0. Назад в главное")
+        print(colorize("=== 3. БРО, ТУТ СПАМ ===", "cyan"))
+        print("1. Текст\n2. Файл\n3. УМНЫЙ СПАМ (рандом)\n4. КАМНИ 🗿\n5. БЕСКОНЕЧНЫЙ\n0. Назад")
         
-        choice = await asyncio.to_thread(input, "\nЧё выбираешь, бро? ")
+        choice = await asyncio.to_thread(input, colorize("\nЧё выбираешь, бро? -> ", "green"))
         if choice == "0": break
-        
         elif choice in ["1", "2", "3", "4", "5"]:
-            if choice == "1": text = await asyncio.to_thread(input, "Текст для спама:\n> "); path=None
-            elif choice == "2": 
-                path_input = await asyncio.to_thread(input, "Путь к файлу:\n> ")
-                path = path_input.strip('"\' '); 
-                text=None
+            if choice == "1": text = await asyncio.to_thread(input, colorize("Текст:\n> ", "green")); path=None
+            elif choice == "2": path = (await asyncio.to_thread(input, colorize("Путь к файлу:\n> ", "green"))).strip('"\' '); text=None
             elif choice == "4": text = "🗿" * 50; path=None
-            elif choice == "5": text = await asyncio.to_thread(input, "Текст для БЕСКОНЕЧНОГО спама:\n> "); path=None
-            else: text = await asyncio.to_thread(input, "Текст для умного спама:\n> "); path=None
+            elif choice == "5": text = await asyncio.to_thread(input, colorize("Текст:\n> ", "green")); path=None
+            else: text = await asyncio.to_thread(input, colorize("Текст:\n> ", "green")); path=None
 
-            if path and not os.path.exists(path): print("[ОШИБКА] Нет файла, бро."); await pause(); continue
-            
+            if path and not os.path.exists(path): print(colorize("[ОШИБКА] Нет файла.", "red")); await pause(); continue
             try:
-                if choice == "5":
-                    count = 999999
-                    delay = "random"
-                    print("\n[ВНИМАНИЕ] Включен бесконечный спам! Чтобы остановить, зажми Ctrl+C в этом окне.")
-                else:
-                    count = int(await asyncio.to_thread(input, "Сколько раз спамим? "))
-                    if choice in ["3", "4"]: delay = "random"
-                    else:
-                        delay_input = await asyncio.to_thread(input, f"Задержка (Enter для {config.DEFAULT_SPAM_DELAY} сек): ")
-                        delay = float(delay_input) if delay_input.strip() else config.DEFAULT_SPAM_DELAY
-            except ValueError: continue
+                count = 999999 if choice == "5" else int(await asyncio.to_thread(input, colorize("Сколько раз? ", "green")))
+                delay = "random" if choice in ["3", "4", "5"] else float(await asyncio.to_thread(input, colorize(f"Задержка (Enter для {config.DEFAULT_SPAM_DELAY}): ", "green")) or config.DEFAULT_SPAM_DELAY)
+            except ValueError: 
+                print(colorize("[ОШИБКА] Нужно ввести число!", "red"))
+                await pause()
+                continue
 
-            print(f"\nПогнали спамить...")
+            print(colorize("\nПогнали...", "yellow"))
             for i in range(count):
                 try:
                     if path: await smart_send_file(config.CHAT_ID, path)
                     else: await bot.send_message(config.CHAT_ID, text)
-                    print(f"[{i+1}/{count if count < 999999 else '∞'}] улетело, бро!")
-                    
-                    if delay == "random": await asyncio.sleep(random.uniform(1.5, 3.5))
-                    else: await asyncio.sleep(delay)
-                except Exception as e: 
-                    print(f"[БАН ОТ ТГ] {e}"); 
-                    break
+                    print(colorize(f"[{i+1}/{count if count < 999999 else '∞'}] ок", "green"))
+                    await asyncio.sleep(random.uniform(1.5, 3.5) if delay == "random" else delay)
+                except Exception as e: print(colorize(f"[БАН] {e}", "red")); break
             await pause()
 
 # ==========================================
@@ -202,373 +186,219 @@ async def menu_spam():
 async def menu_features():
     while True:
         clear_screen()
-        print("=== 4. БРО, ТУТ ФИШКИ ===")
-        print("1. Создать опрос")
-        print("2. Закрепить сообщение")
-        print("3. Кинуть КУБИК")
-        print("4. Кинуть ДАРТС")
-        print("5. Кинуть БАСКЕТБОЛ")
-        print("6. Кинуть РУЛЕТКУ (казино)")
-        print("7. Кинуть ФУТБОЛ")
-        print("8. Рандомное число (1-100)")
-        print("0. Назад в главное")
-        
-        choice = await asyncio.to_thread(input, "\nЧё выбираешь, бро? ")
+        print(colorize("=== 4. ФИШКИ ===", "cyan"))
+        print("1. Опрос\n2. Закреп\n3. Кубик\n4. Дартс\n5. Баскетбол\n6. Рулетка\n7. Футбол\n8. Рандом (1-100)\n0. Назад")
+        choice = await asyncio.to_thread(input, colorize("\nВыбор: ", "green"))
         if choice == "0": break
-        
         elif choice == "1":
-            q = await asyncio.to_thread(input, "Вопрос опроса:\n> ")
-            o1 = await asyncio.to_thread(input, "Вариант 1:\n> ")
-            o2 = await asyncio.to_thread(input, "Вариант 2:\n> ")
-            try: await bot.send_poll(chat_id=config.CHAT_ID, question=q, options=[o1, o2]); print("[БРО, ОПРОС СОЗДАН!]")
-            except Exception as e: print(f"[ОШИБКА] {e}")
+            q = await asyncio.to_thread(input, "Вопрос: "); o1 = await asyncio.to_thread(input, "Вар 1: "); o2 = await asyncio.to_thread(input, "Вар 2: ")
+            try: await bot.send_poll(config.CHAT_ID, q, [o1, o2]); print(colorize("[ОПРОС!]", "green"))
+            except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
         elif choice == "2":
-            msg = await bot.send_message(config.CHAT_ID, "Закреплено, бро!")
-            await bot.pin_chat_message(chat_id=config.CHAT_ID, message_id=msg.message_id); print("[БРО, ЗАКРЕПИЛ!]"); await pause()
+            try:
+                msg = await bot.send_message(config.CHAT_ID, "Закреплено!")
+                await bot.pin_chat_message(config.CHAT_ID, msg.message_id); print(colorize("[ЗАКРЕП!]", "green"))
+            except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
+            await pause()
         elif choice in ["3", "4", "5", "6", "7"]:
-            emoji = "🎲"
-            if choice == "4": emoji = "🎯"
-            elif choice == "5": emoji = "🏀"
-            elif choice == "6": emoji = "🎰"
-            elif choice == "7": emoji = "⚽"
-            try: await bot.send_dice(chat_id=config.CHAT_ID, emoji=emoji); print("[БРО, ИГРА ПОШЛА!]")
-            except Exception as e: print(f"[ОШИБКА] {e}")
+            emoji = {"3":"🎲", "4":"🎯", "5":"🏀", "6":"🎰", "7":"⚽"}[choice]
+            try: await bot.send_dice(config.CHAT_ID, emoji=emoji); print(colorize("[ИГРА!]", "green"))
+            except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
         elif choice == "8":
-            num = random.randint(1, 100)
-            try: await bot.send_message(config.CHAT_ID, f"Бро, выпало число: {num}"); print("[БРО, ЧИСЛО ОТПРАВЛЕНО!]")
-            except Exception as e: print(f"[ОШИБКА] {e}")
+            try: await bot.send_message(config.CHAT_ID, f"Число: {random.randint(1, 100)}"); print(colorize("[ЧИСЛО!]", "green"))
+            except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
 
 # ==========================================
-# РАЗДЕЛ 5: АДМИН-ПАНЕЛЬ
+# РАЗДЕЛ 5: АДМИНКА
 # ==========================================
 async def menu_admin():
     while True:
         clear_screen()
-        print("=== 5. БРО, ТУТ АДМИНКА ===")
-        print("1. Замутить ВСЕХ (типо тишина)")
-        print("2. Размутить ВСЕХ (пусть пишут)")
-        print("3. Сменить НАЗВАНИЕ группы")
-        print("4. Сменить ОПИСАНИЕ группы")
-        print("5. ЗАБАНИТЬ по ID (цифры)")
-        print("6. ЗАБАНИТЬ по @юзеру (ник)")
-        print("7. КИКНУТЬ по ID (цифры)")
-        print("8. КИКНУТЬ по @юзеру (ник)")
-        print("9. УДАЛИТЬ сообщение (по ID сообщения)")
-        print("0. Назад в главное")
-        
-        choice = await asyncio.to_thread(input, "\nЧё выбираешь, бро? ")
+        print(colorize("=== 5. АДМИНКА ===", "cyan"))
+        print("1. Мут всем\n2. Размут всем\n3. Сменить название\n4. Сменить описание")
+        print("5. Бан по ID\n6. Бан по @юзеру\n7. Кик по ID\n8. Кик по @юзеру\n9. Удалить сообщение\n0. Назад")
+        choice = await asyncio.to_thread(input, colorize("\nВыбор: ", "green"))
         if choice == "0": break
-        
         elif choice == "1":
-            try: await bot.set_chat_permissions(chat_id=config.CHAT_ID, permissions=ChatPermissions(can_send_messages=False)); print("[БРО, ВСЕ ЗАМУЧЕНЫ!]")
-            except Exception as e: print(f"[ОШИБКА] {e}")
+            try: await bot.set_chat_permissions(config.CHAT_ID, ChatPermissions(can_send_messages=False)); print(colorize("[МУТ!]", "green"))
+            except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
         elif choice == "2":
-            try: await bot.set_chat_permissions(chat_id=config.CHAT_ID, permissions=ChatPermissions(can_send_messages=True, can_send_media_messages=True, can_send_other_messages=True)); print("[БРО, ВСЕ РАЗМУЧЕНЫ!]")
-            except Exception as e: print(f"[ОШИБКА] {e}")
+            try: await bot.set_chat_permissions(config.CHAT_ID, ChatPermissions(can_send_messages=True, can_send_media_messages=True, can_send_other_messages=True)); print(colorize("[РАЗМУТ!]", "green"))
+            except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
         elif choice == "3":
-            t = await asyncio.to_thread(input, "Новое название группы:\n> ")
-            try: await bot.set_chat_title(chat_id=config.CHAT_ID, title=t); print("[БРО, ПЕРЕИМЕНОВАЛ!]")
-            except Exception as e: print(f"[ОШИБКА] {e}")
+            t = await asyncio.to_thread(input, "Новое название: ")
+            try: await bot.set_chat_title(config.CHAT_ID, t); print(colorize("[OK]", "green"))
+            except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
         elif choice == "4":
-            d = await asyncio.to_thread(input, "Новое описание группы:\n> ")
-            try: await bot.set_chat_description(chat_id=config.CHAT_ID, description=d); print("[БРО, ОПИСАНИЕ СМЕНИЛ!]")
-            except Exception as e: print(f"[ОШИБКА] {e}")
+            d = await asyncio.to_thread(input, "Новое описание: ")
+            try: await bot.set_chat_description(config.CHAT_ID, d); print(colorize("[OK]", "green"))
+            except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
-            
         elif choice in ["5", "6", "7", "8"]:
             if choice in ["5", "7"]:
-                target = await asyncio.to_thread(input, "Введи цифровой ID пользователя:\n> ")
-                try: user_id = int(target)
-                except ValueError: print("[ОШИБКА] Это не ID, бро. Нужны цифры."); await pause(); continue
-            else:
-                target_input = await asyncio.to_thread(input, "Введи @юзернейм (начиная с @):\n> ")
-                target = target_input.strip()
-                user_id = target
-
+                try: target = int(await asyncio.to_thread(input, "ID: "))
+                except ValueError: print(colorize("[ERROR] Нужны цифры", "red")); await pause(); continue
+            else: target = (await asyncio.to_thread(input, "@юзер: ")).strip()
             try:
-                if choice in ["5", "6"]: # Бан
-                    await bot.ban_chat_member(chat_id=config.CHAT_ID, user_id=user_id)
-                    print(f"[БРО, ПОЛЬЗОВАТЕЛЬ {target} В БАНЕ!]")
-                else: # Кик
-                    await bot.ban_chat_member(chat_id=config.CHAT_ID, user_id=user_id)
-                    await bot.unban_chat_member(chat_id=config.CHAT_ID, user_id=user_id)
-                    print(f"[БРО, ПОЛЬЗОВАТЕЛЬ {target} ВЫШВЫРНУТ!]")
-            except Exception as e:
-                print(f"[ОШИБКА] Не вышло. Может юзера нет или бот не админ. ({e})")
+                if choice in ["5", "6"]: await bot.ban_chat_member(config.CHAT_ID, target); print(colorize("[ЗАБАНЕН!]", "green"))
+                else:
+                    await bot.ban_chat_member(config.CHAT_ID, target); await bot.unban_chat_member(config.CHAT_ID, target); print(colorize("[КИКНУТ!]", "green"))
+            except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
-            
         elif choice == "9":
-            msg_id = await asyncio.to_thread(input, "Введи ID сообщения:\n> ")
-            try: await bot.delete_message(chat_id=config.CHAT_ID, message_id=int(msg_id)); print("[БРО, СООБЩЕНИЕ УДАЛЕНО!]")
-            except Exception as e: print(f"[ОШИБКА] {e}")
+            try: msg_id = int(await asyncio.to_thread(input, "ID сообщения: ")); await bot.delete_message(config.CHAT_ID, msg_id); print(colorize("[УДАЛЕНО!]", "green"))
+            except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
 
 # ==========================================
-# РАЗДЕЛ 6: НАСТРОЙКИ БОТА
+# РАЗДЕЛ 6-8: НАСТРОЙКИ, ИНФО, ГАЙД
 # ==========================================
 async def menu_bot_settings():
     while True:
-        clear_screen()
-        print("=== 6. БРО, НАСТРОЙКИ БОТА ===")
-        print("1. Задать команды бота (Меню / )")
-        print("2. Изменить описание бота")
-        print("0. Назад в главное")
-        
-        choice = await asyncio.to_thread(input, "\nЧё выбираешь, бро? ")
+        clear_screen(); print(colorize("=== 6. НАСТРОЙКИ БОТА ===", "cyan"))
+        print("1. Задать команды\n2. Описание бота\n0. Назад")
+        choice = await asyncio.to_thread(input, colorize("\nВыбор: ", "green"))
         if choice == "0": break
         elif choice == "1":
-            print("\n[ИНФО] Ставлю команды: /start, /help, /spam")
             try:
-                commands = [
-                    BotCommand(command="start", description="Запустить бота"),
-                    BotCommand(command="help", description="Помощь"),
-                    BotCommand(command="spam", description="Начать спам")
-                ]
-                await bot.set_my_commands(commands)
-                print("[БРО, КОМАНДЫ УСТАНОВЛЕНЫ!]")
-            except Exception as e: print(f"[ОШИБКА] {e}")
+                await bot.set_my_commands([BotCommand(command="start", description="Start"), BotCommand(command="help", description="Help")])
+                print(colorize("[КОМАНДЫ УСТАНОВЛЕНЫ!]", "green"))
+            except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
         elif choice == "2":
-            d = await asyncio.to_thread(input, "Новое описание бота:\n> ")
-            try: await bot.set_my_description(description=d); print("[БРО, ОПИСАНИЕ БОТА СМЕНЕНО!]")
-            except Exception as e: print(f"[ОШИБКА] {e}")
+            d = await asyncio.to_thread(input, "Описание: ")
+            try: await bot.set_my_description(d); print(colorize("[OK]", "green"))
+            except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
 
-# ==========================================
-# РАЗДЕЛ 7: ИНФО
-# ==========================================
 async def menu_settings():
     while True:
-        clear_screen()
-        print("=== 7. БРО, ТУТ ИНФО ===")
-        print("1. Профиль бота")
-        print("2. Пинг до серверов ТГ")
-        print("3. Инфо о чате")
-        print("4. Сколько людей в чате?")
-        print("0. Назад в главное")
-        
-        choice = await asyncio.to_thread(input, "\nЧё выбираешь, бро? ")
+        clear_screen(); print(colorize("=== 7. ИНФО ===", "cyan"))
+        print("1. Профиль\n2. Пинг\n3. Инфо чата\n4. Сколько людей\n0. Назад")
+        choice = await asyncio.to_thread(input, colorize("\nВыбор: ", "green"))
         if choice == "0": break
         elif choice == "1":
-            me = await bot.get_me(); print(f"\nИмя: {me.first_name}\nЮзер: @{me.username}\nID: {me.id}"); await pause()
+            me = await bot.get_me(); print(colorize(f"\nИмя: {me.first_name}\nЮзер: @{me.username}\nID: {me.id}", "white")); await pause()
         elif choice == "2":
-            start = time.time(); await bot.get_me(); print(f"\nПинг: {round((time.time() - start) * 1000, 2)} мс. Всё чётко."); await pause()
+            start = time.time(); await bot.get_me(); print(colorize(f"\nПинг: {round((time.time() - start) * 1000, 2)} мс", "white")); await pause()
         elif choice == "3":
             try:
                 chat = await bot.get_chat(config.CHAT_ID)
-                print(f"\nНазвание: {chat.title}\nID: {chat.id}\nТип: {chat.type}")
-            except Exception as e: print(f"\n[ОШИБКА] {e}")
+                print(colorize(f"\nНазвание: {chat.title}\nID: {chat.id}\nТип: {chat.type}", "white"))
+            except Exception as e: print(colorize(f"\n[ERROR] {e}", "red"))
             await pause()
         elif choice == "4":
-            try: print(f"\nВ чате сидит: {await bot.get_chat_member_count(config.CHAT_ID)} человек.")
-            except Exception as e: print(f"\n[ОШИБКА] {e}")
+            try: print(colorize(f"\nЛюдей: {await bot.get_chat_member_count(config.CHAT_ID)}", "white"))
+            except Exception as e: print(colorize(f"\n[ERROR] {e}", "red"))
             await pause()
 
-# ==========================================
-# РАЗДЕЛ 8: ГАЙД (ПОМОЩЬ)
-# ==========================================
 async def menu_help():
     while True:
+        clear_screen(); print(colorize("=== 8. ГАЙД ===", "cyan"))
+        print("1. Текст\n2. Медиа\n3. Спам\n4. Фишки\n5. Админка\n6. Настройки\n7. Инфо\n8. Музыка\n0. Назад")
+        choice = await asyncio.to_thread(input, colorize("\nКакой раздел объяснить? ", "green"))
         clear_screen()
-        print("=== 8. БРО, ТУТ ГАЙД (ЧТО ВСЁ ЗНАЧИТ) ===")
-        print("1. Про раздел ТЕКСТ")
-        print("2. Про раздел МЕДИА")
-        print("3. Про раздел СПАМ")
-        print("4. Про раздел ФИШКИ")
-        print("5. Про раздел АДМИНКА")
-        print("6. Про раздел НАСТРОЙКИ БОТА")
-        print("7. Про раздел ИНФО")
-        print("8. Про раздел МУЗЫКА")
-        print("0. Назад в главное")
-        
-        choice = await asyncio.to_thread(input, "\nКакой раздел объяснить, бро? ")
-        
-        clear_screen()
-        if choice == "1":
-            print("--- ГАЙД: ТЕКСТ ---")
-            print("Тут ты просто кидаешь текст в чат.")
-            print("• HTML: Позволяет делать текст жирным (<b>), курсивом (<i>) и т.д.")
-            print("• Эффект 'Печатает': Бот 1.5 сек показывает в чате, что он 'печатает...', а потом отправляет текст.")
-            print("• Перевертыш: Пишет текст задом наперед (Привет -> тевирП).")
-            print("• Base64: Шифрует текст в непонятные буквы (для секреток).")
-            print("• Секретный текст: Текст скрывается под черным спойлером.")
-            await pause()
-        elif choice == "2":
-            print("--- ГАЙД: МЕДИА ---")
-            print("Тут ты отправляешь файлы. Бот САМ понимает, что ты кинул.")
-            print("• Кружок: Отправляет видео в формате круглого сообщения (как в ТГ).")
-            print("• Геолокация: Отправляет точку на карте по координатам.")
-            print("• Контакт: Отправляет фейковый номер телефона с именем.")
-            await pause()
-        elif choice == "3":
-            print("--- ГАЙД: СПАМ-ЗОНА ---")
-            print("Тут бот спамит.")
-            print("• Обычный: Шлет с той задержкой, которую ты укажешь.")
-            print("• УМНЫЙ СПАМ: Бот сам ставит рандомную задержку от 1.5 до 3.5 сек. Телеграм это любит больше.")
-            print("• БЕСКОНЕЧНЫЙ: Бот будет спамить пока ты не зажмешь Ctrl+C в окне.")
-            print("• СПАМ КАМНЯМИ: Кидает 50 смайликов 🗿 в одном сообщении.")
-            await pause()
-        elif choice == "4":
-            print("--- ГАЙД: ФИШКИ ---")
-            print("Тут развлечения.")
-            print("• Опрос: Создает голосовалку в чате.")
-            print("• Игры (Кубик, Дартс, Рулетка): Отправляет анимированные смайлы ТГ.")
-            print("• Закреп: Бот пишет сообщение и закрепляет его вверху чата.")
-            await pause()
-        elif choice == "5":
-            print("--- ГАЙД: АДМИНКА ---")
-            print("ВАЖНО: Бот должен быть админом в группе!")
-            print("• Мут: Запрещает всем писать.")
-            print("• Бан: Выгоняет человека из группы навсегда.")
-            print("• Кик: Выгоняет, но человек может вернуться.")
-            print("• ID: Это цифры. Юзер: Это @nickname.")
-            print("• Удалить: Удаляет сообщение по его внутреннему ID.")
-            await pause()
-        elif choice == "6":
-            print("--- ГАЙД: НАСТРОЙКИ БОТА ---")
-            print("• Команды: Добавляет боту синюю кнопку 'Меню' в чате.")
-            print("• Описание: Меняет текст, который видит человек при первом запуске бота.")
-            await pause()
-        elif choice == "7":
-            print("--- ГАЙД: ИНФО ---")
-            print("Просто показывает данные: имя бота, пинг, сколько людей в группе.")
-            await pause()
-        elif choice == "8":
-            print("--- ГАЙД: МУЗЫКА ---")
-            print("Этот раздел включает музыку ПРЯМО У ТЕБЯ НА КОМПЬЮТЕРЕ (через pyglet).")
-            print("• Включить: Указываешь путь к mp3 файлу.")
-            print("• Пауза/Продолжить: Ставит трек на паузу или возвращает.")
-            print("• Громкость: Меняешь от 0.0 до 1.0 (например, 0.5 - это 50%).")
-            await pause()
-        elif choice == "0":
-            break
-        else:
-            print("Нет такого пункта, бро.")
-            await asyncio.sleep(1)
+        if choice == "1": print(colorize("ТУТ ОБЪЯСНЕНИЕ ПРО ТЕКСТ (HTML, Base64 и т.д.)", "yellow")); await pause()
+        elif choice == "2": print(colorize("ТУТ ОБЪЯСНЕНИЕ ПРО МЕДИА (Кружки, Гео)", "yellow")); await pause()
+        elif choice == "3": print(colorize("ТУТ ОБЪЯСНЕНИЕ ПРО СПАМ (Умный, Бесконечный)", "yellow")); await pause()
+        elif choice == "4": print(colorize("ТУТ ОБЪЯСНЕНИЕ ПРО ИГРЫ И ОПРОСЫ", "yellow")); await pause()
+        elif choice == "5": print(colorize("ТУТ ОБЪЯСНЕНИЕ ПРО БАНЫ И МУТЫ", "yellow")); await pause()
+        elif choice == "6": print(colorize("ТУТ ОБЪЯСНЕНИЕ ПРО КОМАНДЫ БОТА", "yellow")); await pause()
+        elif choice == "7": print(colorize("ТУТ ОБЪЯСНЕНИЕ ПРО ПИНГ И СТАТИСТИКУ", "yellow")); await pause()
+        elif choice == "8": print(colorize("ТУТ ОБЪЯСНЕНИЕ ПРО МУЗЫКУ (Pyglet)", "yellow")); await pause()
+        elif choice == "0": break
 
 # ==========================================
-# РАЗДЕЛ 9: МУЗЫКА (ЛОКАЛЬНЫЙ ПЛЕЕР)
+# РАЗДЕЛ 9: МУЗЫКА
 # ==========================================
 async def menu_music():
-    global player # Объявляем, что будем менять глобальную переменную
-    
-    if not AUDIO_OK:
-        print("\n[ОШИБКА] Pyglet не установлен. Выполни: pip install pyglet")
-        await pause()
-        return
+    global player
+    if not AUDIO_OK: print(colorize("\n[ОШИБКА] Pyglet не установлен!", "red")); await pause(); return
 
     while True:
-        clear_screen()
-        print("=== 9. БРО, ТУТ МУЗЫКА (ПЛЕЕР) ===")
+        clear_screen(); print(colorize("=== 9. МУЗЫКА ===", "cyan"))
+        print(colorize("[СТАТУС] " + ("Играет..." if player.playing else "Тишина/Пауза"), "green"))
+        print("1. Включить\n2. Пауза/Продолжить\n3. Стоп\n4. Громче (+10%)\n5. Тише (-10%)\n0. Назад")
         
-        if player.playing:
-            print("[СТАТУС] Музыка играет прямо сейчас...")
-        else:
-            print("[СТАТУС] Тишина или пауза.")
-
-        print("1. Включить трек (путь к файлу)")
-        print("2. Пауза / Продолжить")
-        print("3. Остановить музыку")
-        print("4. Сделать громче (+10%)")
-        print("5. Сделать тише (-10%)")
-        print("0. Назад в главное")
-        
-        choice = await asyncio.to_thread(input, "\nЧё выбираешь, бро? ")
+        choice = await asyncio.to_thread(input, colorize("\nВыбор: ", "green"))
         if choice == "0": break
-        
         elif choice == "1":
-            path_input = await asyncio.to_thread(input, "Путь к mp3 файлу:\n> ")
-            path = path_input.strip('"\' ')
-            if not os.path.exists(path):
-                print("[ОШИБКА] Нет такого файла, бро."); await pause(); continue
-            
+            path = (await asyncio.to_thread(input, "Путь к mp3:\n> ")).strip('"\' ')
+            if not os.path.exists(path): print(colorize("[ОШИБКА] Нет файла", "red")); await pause(); continue
             try:
-                print("[...] Загружаю трек...")
-                # Создаем нового плеера, чтобы сбросить старые треки
-                player = pyglet.media.Player()
-                # Загружаем в отдельном потоке, чтобы консоль не зависла
-                source = await asyncio.to_thread(pyglet.media.load, path)
-                player.queue(source)
-                player.play()
-                print("[БРО, МУЗЫКА ЗАИГРАЛА!]")
-            except Exception as e:
-                print(f"[ОШИБКА] {e}")
+                player = pyglet.media.Player(); source = await asyncio.to_thread(pyglet.media.load, path); player.queue(source); player.play()
+                print(colorize("[МУЗЫКА ИГРАЕТ!]", "green"))
+            except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
-
         elif choice == "2":
-            if player.playing:
-                player.pause()
-                print("[БРО, ПАУЗА!]")
-            else:
-                player.play()
-                print("[БРО, ПРОДОЛЖАЕМ!]")
+            if player.playing: player.pause(); print(colorize("[ПАУЗА]", "green"))
+            else: player.play(); print(colorize("[ПРОДОЛЖАЕМ]", "green"))
             await pause()
-
         elif choice == "3":
-            player.pause()
-            player.seek(0) # Отматываем в начало
-            print("[БРО, МУЗЫКА ОСТАНОВЛЕНА!]")
-            await pause()
-
+            player.pause(); player.seek(0); print(colorize("[СТОП]", "green")); await pause()
         elif choice == "4":
-            vol = player.volume
-            new_vol = min(1.0, vol + 0.1)
-            player.volume = new_vol
-            print(f"[БРО, ГРОМКОСТЬ: {int(new_vol*100)}%]")
-            await pause()
-
+            player.volume = min(1.0, player.volume + 0.1); print(colorize(f"[ГРОМКОСТЬ: {int(player.volume*100)}%]", "green")); await pause()
         elif choice == "5":
-            vol = player.volume
-            new_vol = max(0.0, vol - 0.1)
-            player.volume = new_vol
-            print(f"[БРО, ГРОМКОСТЬ: {int(new_vol*100)}%]")
-            await pause()
+            player.volume = max(0.0, player.volume - 0.1); print(colorize(f"[ГРОМКОСТЬ: {int(player.volume*100)}%]", "green")); await pause()
+
+# ==========================================
+# РАЗДЕЛ 10: СМЕНА ТЕМЫ
+# ==========================================
+async def menu_theme():
+    global CURRENT_THEME
+    while True:
+        clear_screen()
+        print(colorize("=== 10. СМЕНА ТЕМЫ ===", "cyan"))
+        print("1. 🔴 Красный\n2. 🟢 Зеленый\n3. 🔵 Синий\n4. 🟡 Желтый")
+        print("5. 🟣 Фиолетовый\n6. 🔷 Голубой\n7. 🌈 РАДУГА\n0. Назад")
+        
+        choice = await asyncio.to_thread(input, colorize("\nВыбор: ", "green"))
+        if choice == "0": break
+        elif choice == "1": CURRENT_THEME = "red"
+        elif choice == "2": CURRENT_THEME = "green"
+        elif choice == "3": CURRENT_THEME = "blue"
+        elif choice == "4": CURRENT_THEME = "yellow"
+        elif choice == "5": CURRENT_THEME = "purple"
+        elif choice == "6": CURRENT_THEME = "cyan"
+        elif choice == "7": CURRENT_THEME = "rainbow"
+        else: continue
+        print(colorize("\n[ТЕМА ИЗМЕНЕНА!]", "green")); await pause()
 
 # ==========================================
 # ГЛАВНОЕ МЕНЮ
 # ==========================================
 async def main():
     clear_screen()
-    print("Запуск... Подключение...")
-    await bot.delete_webhook()
-    
+    print(colorize("Запуск...", "yellow")); await bot.delete_webhook()
     try:
-        me = await bot.get_me()
-        print(f"[БРО, БОТ @{me.username} НА СВЯЗИ!]")
-        await asyncio.sleep(1)
-    except Exception as e:
-        print(f"[ОШИБКА] {e}")
-        return
+        me = await bot.get_me(); print(colorize(f"[БОТ @{me.username} НА СВЯЗИ!]", "green")); await asyncio.sleep(1)
+    except Exception as e: print(colorize(f"[ОШИБКА] {e}", "red")); return
 
     while True:
         clear_screen()
-        print("=" * 50)
-        print("       БРО, ТЫ В ПАНЕЛИ УПРАВЛЕНИЯ")
-        print("=" * 50)
-        print("1. ТЕКСТ (обычный, мемный, секретный)")
-        print("2. МЕДИА (файлы, стикеры, кружки)")
-        print("3. СПАМ-ЗОНА (текст, файлы, бесконечный)")
-        print("4. ФИШКИ (опросы, кубики, рулетка)")
-        print("5. АДМИНКА (мут, бан по ID/@юзеру)")
-        print("6. НАСТРОЙКИ БОТА (команды)")
-        print("7. ИНФО И ПИНГ")
-        print("8. ГАЙД (Что всё это значит?)")
-        print("9. МУЗЫКА (Плеер прямо в консоли)")
-        print("0. ВЫХОД")
-        print("=" * 50)
+        print(colorize("╔════════════════════════════════════════════════╗", "cyan"))
+        print(colorize("║          🤖 БРО-ПАНЕЛЬ БОТА V11 🤖          ║", "cyan"))
+        print(colorize("╠════════════════════════════════════════════════╣", "cyan"))
+        print(colorize("║ 1. 📝 ТЕКСТ          │ 6. ⚙️ НАСТРОЙКИ БОТА   ║", "cyan"))
+        print(colorize("║ 2. 📁 МЕДИА          │ 7. ℹ️ ИНФО И ПИНГ      ║", "cyan"))
+        print(colorize("║ 3. 💣 СПАМ-ЗОНА      │ 8. 📖 ГАЙД (ПОМОЩЬ)    ║", "cyan"))
+        print(colorize("║ 4. 🎲 ФИШКИ          │ 9. 🎵 МУЗЫКА           ║", "cyan"))
+        print(colorize("║ 5. 👑 АДМИНКА        │ 10. 🎨 СМЕНА ТЕМЫ      ║", "cyan"))
+        print(colorize("╠════════════════════════════════════════════════╣", "cyan"))
+        print(colorize("║ 0. 🚪 ВЫХОД                                    ║", "cyan"))
+        print(colorize("╚════════════════════════════════════════════════╝", "cyan"))
         
-        choice = await asyncio.to_thread(input, "Выбери раздел (0-9): ")
+        choice = await asyncio.to_thread(input, colorize("\nВыбери раздел (0-10): ", "green"))
 
-        if choice == "0":
-            print("Выход... Давай, бро!")
-            if AUDIO_OK:
-                player.pause() # Выключаем музыку при выходе
+        if choice == "0": 
+            print(colorize("Выход...", "yellow"))
+            if AUDIO_OK: player.pause() 
             break
         elif choice == "1": await menu_text()
         elif choice == "2": await menu_media()
@@ -579,6 +409,7 @@ async def main():
         elif choice == "7": await menu_settings()
         elif choice == "8": await menu_help()
         elif choice == "9": await menu_music()
+        elif choice == "10": await menu_theme()
 
     await bot.session.close()
 
