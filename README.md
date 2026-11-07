@@ -8,16 +8,23 @@
 Мощный консольный мультитул для Телеграма. / A powerful console multitool for Telegram.
 
 🔗 **Навигация / Navigation:**
-[🇷🇺 Читать на русском](#-русская-версия) | [🇬🇧 Read in English](#-english-version)
+[🇷🇺 Читать на русском](#ru-version) | [🇬🇧 Read in English](#en-version)
 
 ---
 
+<!-- Якорь для русского языка -->
+<a name="ru-version"></a>
 ## 🇷🇺 Русская версия
 
 Это не просто бот, а настоящий швейцарский нож. Он умеет делать OSINT-пробив, генерировать фейковые данные, спамить, играть музыку и даже **управляться удаленно прямо из Телеграма**. Идеально для пранка над друзьями!
 
-### 🚀 Быстрая установка (через терминал)
+### 🛠 Установка (2 способа)
 
-1. **Склонируй репозиторий:**
-   ```bash
-   git clone https://github.com/yarpower/BRO_Bot_Panel.git
+**Способ 1: Склонировать репозиторий (через терминал)**
+Если у тебя установлен Git и Python, открой терминал и выполни:
+```bash
+git clone https://github.com/yarpower/BRO_Bot_Panel.git
+cd BRO_Bot_Panel
+pip install -r requirements.txt
+cd RU_Version
+python main.py
