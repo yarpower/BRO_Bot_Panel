@@ -49,7 +49,7 @@ def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 # ==========================================
-# SMART WINDOW SIZE SELECTION
+# WINDOW SIZE
 # ==========================================
 def ask_window_size():
     clear_screen()
@@ -70,44 +70,38 @@ def ask_window_size():
             user32 = ctypes.windll.user32
             sw = user32.GetSystemMetrics(0)
             sh = user32.GetSystemMetrics(1)
-            # Safe calculation to prevent window from going off-screen
             max_cols = int(sw / 10) 
             max_lines = int(sh / 22) 
-            if max_cols > 200: max_cols = 200 
+            if max_cols > 200: max_cols = 200
         except:
             max_cols, max_lines = 150, 45
 
         try:
-            if choice == "1":
-                os.system('mode con: cols=80 lines=25'); break
-            elif choice == "2":
-                os.system('mode con: cols=100 lines=30'); break
-            elif choice == "3":
-                os.system(f'mode con: cols={int(max_cols*0.65)} lines={int(max_lines*0.65)}'); break
-            elif choice == "4":
-                os.system(f'mode con: cols={int(max_cols*0.85)} lines={int(max_lines*0.85)}'); break
-            elif choice == "5":
-                os.system(f'mode con: cols={max_cols} lines={max_lines}'); break
-            else:
-                print("Wrong choice, bro. Press 1-5.")
+            if choice == "1": os.system('mode con: cols=80 lines=25'); break
+            elif choice == "2": os.system('mode con: cols=100 lines=30'); break
+            elif choice == "3": os.system(f'mode con: cols={int(max_cols*0.65)} lines={int(max_lines*0.65)}'); break
+            elif choice == "4": os.system(f'mode con: cols={int(max_cols*0.85)} lines={int(max_lines*0.85)}'); break
+            elif choice == "5": os.system(f'mode con: cols={max_cols} lines={max_lines}'); break
+            else: print("Wrong choice, bro. Press 1-5.")
         except Exception as e:
             print(f"Failed to resize: {e}")
             break
 
 # ==========================================
-# SMART PANEL DRAWING
+# SMART PANEL (COLOR FIXED)
 # ==========================================
 def draw_panel(title, options):
     cols = shutil.get_terminal_size().columns
     width = max(60, cols - 4) 
     
-    print(colorize("╔" + "═" * width + "╗", "cyan"))
+    # Removed hardcoded "cyan" -> now uses CURRENT_THEME
+    print(colorize("╔" + "═" * width + "╗"))
     
     title_str = f"  {title}  "
     left_pad = (width - len(title_str)) // 2
     right_pad = width - len(title_str) - left_pad
-    print(colorize("║" + " " * left_pad + title_str + " " * right_pad + "║", "cyan"))
-    print(colorize("╠" + "═" * width + "╣", "cyan"))
+    print(colorize("║" + " " * left_pad + title_str + " " * right_pad + "║"))
+    print(colorize("╠" + "═" * width + "╣"))
     
     col_width = (width - 1) // 2
     right_width = width - 1 - col_width
@@ -119,9 +113,9 @@ def draw_panel(title, options):
         left_str = f" {left_opt}"[:col_width].ljust(col_width)
         right_str = f" {right_opt}"[:right_width].ljust(right_width)
         
-        print(colorize(f"║{left_str}│{right_str}║", "cyan"))
+        print(colorize(f"║{left_str}│{right_str}║"))
             
-    print(colorize("╚" + "═" * width + "╝", "cyan"))
+    print(colorize("╚" + "═" * width + "╝"))
 
 def get_file_type(path):
     ext = os.path.splitext(path)[1].lower()
@@ -152,7 +146,7 @@ def pause():
 async def menu_text():
     while True:
         clear_screen()
-        draw_panel("1. [TXT] BRO, HERE IS TEXT", [
+        draw_panel("1. TEXT", [
             "1. Regular text", "2. HTML (bold)", "3. 'Typing...' effect",
             "4. Reverse text", "5. CAPS (SCREAM)", "6. Meme text",
             "7. Base64 Encryption", "8. SECRET TEXT", "0. Back to menu"
@@ -182,7 +176,7 @@ async def menu_text():
 async def menu_media():
     while True:
         clear_screen()
-        draw_panel("2. [MED] BRO, HERE IS MEDIA", [
+        draw_panel("2. MEDIA", [
             "1. Send file", "2. Location", "3. Contact", 
             "4. Sticker", "5. Video Note", "0. Back to menu"
         ])
@@ -220,12 +214,12 @@ async def menu_media():
             await pause()
 
 # ==========================================
-# SECTION 3: SPAM ZONE
+# SECTION 3: SPAM ZONE (CTRL+C FIXED)
 # ==========================================
 async def menu_spam():
     while True:
         clear_screen()
-        draw_panel("3. [SPM] BRO, HERE IS SPAM", [
+        draw_panel("3. SPAM ZONE", [
             "1. Text", "2. File", "3. SMART SPAM",
             "4. STONES", "5. INFINITE", "0. Back to menu"
         ])
@@ -254,7 +248,12 @@ async def menu_spam():
                     else: await bot.send_message(config.CHAT_ID, text)
                     print(colorize(f"[{i+1}/{count if count < 999999 else 'INF'}] ok", "green"))
                     await asyncio.sleep(random.uniform(1.5, 3.5) if delay == "random" else delay)
-                except Exception as e: print(colorize(f"[BAN] {e}", "red")); break
+                except asyncio.CancelledError:
+                    print(colorize("\n[BRO] Spam interrupted!", "yellow"))
+                    return
+                except Exception as e: 
+                    print(colorize(f"[BAN] {e}", "red"))
+                    break
             await pause()
 
 # ==========================================
@@ -263,7 +262,7 @@ async def menu_spam():
 async def menu_features():
     while True:
         clear_screen()
-        draw_panel("4. [FUN] TRICKS", [
+        draw_panel("4. TRICKS", [
             "1. Poll", "2. Pin", "3. Dice",
             "4. Darts", "5. Basketball", "6. Roulette",
             "7. Football", "8. Random (1-100)", "0. Back to menu"
@@ -297,7 +296,7 @@ async def menu_features():
 async def menu_admin():
     while True:
         clear_screen()
-        draw_panel("5. [ADM] ADMIN PANEL", [
+        draw_panel("5. ADMIN PANEL", [
             "1. Mute all", "2. Unmute all", "3. Change title",
             "4. Change description", "5. Ban by ID", "6. Ban by @user",
             "7. Kick by ID", "8. Kick by @user", "9. Delete message",
@@ -344,7 +343,7 @@ async def menu_admin():
 # ==========================================
 async def menu_bot_settings():
     while True:
-        clear_screen(); draw_panel("6. [SET] BOT SETTINGS", ["1. Set commands", "2. Bot description", "0. Back"])
+        clear_screen(); draw_panel("6. BOT SETTINGS", ["1. Set commands", "2. Bot description", "0. Back"])
         choice = await asyncio.to_thread(input, colorize("\nChoice: ", "green"))
         if choice == "0": break
         elif choice == "1":
@@ -359,7 +358,7 @@ async def menu_bot_settings():
 
 async def menu_settings():
     while True:
-        clear_screen(); draw_panel("7. [INF] INFO", ["1. Profile", "2. Ping", "3. Chat info", "4. Members", "0. Back"])
+        clear_screen(); draw_panel("7. INFO", ["1. Profile", "2. Ping", "3. Chat info", "4. Members", "0. Back"])
         choice = await asyncio.to_thread(input, colorize("\nChoice: ", "green"))
         if choice == "0": break
         elif choice == "1":
@@ -378,7 +377,7 @@ async def menu_settings():
 
 async def menu_help():
     while True:
-        clear_screen(); draw_panel("8. [HLP] GUIDE", ["1. Text", "2. Media", "3. Spam", "4. Tricks", "5. Admin", "6. Settings", "7. Info", "8. Music", "0. Back"])
+        clear_screen(); draw_panel("8. GUIDE", ["1. Text", "2. Media", "3. Spam", "4. Tricks", "5. Admin", "6. Settings", "7. Info", "8. Music", "0. Back"])
         choice = await asyncio.to_thread(input, colorize("\nWhich section? ", "green"))
         if choice == "0": break
         print(colorize("\nEXPLANATION FOR THIS SECTION...", "yellow")); await pause()
@@ -387,7 +386,7 @@ async def menu_music():
     global player
     if not AUDIO_OK: print(colorize("\n[ERROR] Pyglet is not installed!", "red")); await pause(); return
     while True:
-        clear_screen(); draw_panel("9. [MUS] MUSIC", ["1. Play", "2. Pause/Resume", "3. Stop", "4. Vol UP (+10%)", "5. Vol DOWN (-10%)", "0. Back"])
+        clear_screen(); draw_panel("9. MUSIC", ["1. Play", "2. Pause/Resume", "3. Stop", "4. Vol UP (+10%)", "5. Vol DOWN (-10%)", "0. Back"])
         print(colorize("[STATUS] " + ("Playing..." if player.playing else "Silence"), "green"))
         choice = await asyncio.to_thread(input, colorize("\nChoice: ", "green"))
         if choice == "0": break
@@ -410,7 +409,7 @@ async def menu_music():
 async def menu_theme():
     global CURRENT_THEME
     while True:
-        clear_screen(); draw_panel("10. [THM] THEME", ["1. (RED) Red", "2. (GRN) Green", "3. (BLU) Blue", "4. (YLW) Yellow", "5. (PPL) Purple", "6. (CYN) Cyan", "7. (RGB) RAINBOW", "0. Back"])
+        clear_screen(); draw_panel("10. THEME", ["1. Red", "2. Green", "3. Blue", "4. Yellow", "5. Purple", "6. Cyan", "7. RAINBOW", "0. Back"])
         choice = await asyncio.to_thread(input, colorize("\nChoice: ", "green"))
         if choice == "0": break
         elif choice == "1": CURRENT_THEME = "red"
@@ -424,7 +423,7 @@ async def menu_theme():
         print(colorize("\n[THEME CHANGED!]", "green")); await pause()
 
 # ==========================================
-# MAIN MENU
+# MAIN MENU (CTRL+C FIXED)
 # ==========================================
 async def main():
     ask_window_size()
@@ -435,32 +434,38 @@ async def main():
     except Exception as e: print(colorize(f"[ERROR] {e}", "red")); return
 
     while True:
-        clear_screen()
-        draw_panel("BRO-PANEL BOT V14", [
-            "1. [TXT] TEXT", "6. [SET] BOT SETTINGS",
-            "2. [MED] MEDIA", "7. [INF] INFO & PING",
-            "3. [SPM] SPAM ZONE", "8. [HLP] GUIDE (HELP)",
-            "4. [FUN] TRICKS", "9. [MUS] MUSIC",
-            "5. [ADM] ADMIN PANEL", "10. [THM] THEME",
-            "0. [EXT] EXIT", ""
-        ])
-        
-        choice = await asyncio.to_thread(input, colorize("\nChoose section (0-10): ", "green"))
+        try:
+            clear_screen()
+            draw_panel("BRO-PANEL BOT V14", [
+                "1. TEXT", "6. BOT SETTINGS",
+                "2. MEDIA", "7. INFO & PING",
+                "3. SPAM ZONE", "8. GUIDE (HELP)",
+                "4. TRICKS", "9. MUSIC",
+                "5. ADMIN PANEL", "10. THEME",
+                "0. EXIT", ""
+            ])
+            
+            choice = await asyncio.to_thread(input, colorize("\nChoose section (0-10): ", "green"))
 
-        if choice == "0": 
-            print(colorize("Exiting...", "yellow"))
-            if AUDIO_OK: player.pause() 
+            if choice == "0": 
+                print(colorize("Exiting...", "yellow"))
+                if AUDIO_OK: player.pause() 
+                break
+            elif choice == "1": await menu_text()
+            elif choice == "2": await menu_media()
+            elif choice == "3": await menu_spam()
+            elif choice == "4": await menu_features()
+            elif choice == "5": await menu_admin()
+            elif choice == "6": await menu_bot_settings()
+            elif choice == "7": await menu_settings()
+            elif choice == "8": await menu_help()
+            elif choice == "9": await menu_music()
+            elif choice == "10": await menu_theme()
+
+        except (KeyboardInterrupt, asyncio.CancelledError):
+            print(colorize("\n\n[BRO] You pressed Ctrl+C. Exiting the bot...", "red"))
+            if AUDIO_OK: player.pause()
             break
-        elif choice == "1": await menu_text()
-        elif choice == "2": await menu_media()
-        elif choice == "3": await menu_spam()
-        elif choice == "4": await menu_features()
-        elif choice == "5": await menu_admin()
-        elif choice == "6": await menu_bot_settings()
-        elif choice == "7": await menu_settings()
-        elif choice == "8": await menu_help()
-        elif choice == "9": await menu_music()
-        elif choice == "10": await menu_theme()
 
     await bot.session.close()
 
