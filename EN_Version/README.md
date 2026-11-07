@@ -34,6 +34,24 @@ Run the bot:
 python main.py
 
 ⚠️ Important Warnings
+
+## ⚙️ Telegram Bot Settings
+
+For the bot to work correctly, you need to configure it properly through **@BotFather**.
+
+1. **Disable Group Privacy:**
+   * Send the `/setprivacy` command to **@BotFather**.
+   * Choose your bot.
+   * Click the **Disable** button.
+   * *(This is required so the bot can freely read and send messages in groups)*.
+2. **Allow Groups:**
+   * Send the `/setjoingroups` command.
+   * Choose your bot.
+   * Click the **Enable** button.
+3. **Grant Admin Rights:**
+   * Add the bot to your group or channel.
+   * Go to group settings -> Members -> promote the bot to **Administrator** (this is mandatory for the "Admin Panel" and Spam features to work).
+
 VPN for Russia: If you are located in Russia, you MUST enable a VPN before running the bot. Telegram blocks direct requests to api.telegram.org from Russian IPs.
 
 Flood Control: Do not spam with a delay of less than 1 second. Telegram will throw a FloodWait error (banning the bot from sending messages for 5-10 minutes).
