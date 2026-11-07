@@ -9,6 +9,7 @@ import platform
 import string
 import re
 import urllib.parse
+import uuid
 from datetime import datetime
 
 try:
@@ -169,7 +170,7 @@ def gen_card():
     return " ".join(["".join(map(str, digits))[i:i+4] for i in range(0, 16, 4)])
 
 # ==========================================
-# SECTIONS 1-5
+# SECTIONS 1-8
 # ==========================================
 async def menu_text():
     while True:
@@ -200,8 +201,7 @@ async def menu_media():
             except Exception as e: print(colorize(f"[ERR] {e}", "red"))
             await pause()
         elif c=="2":
-            try:
-                lat_str=await asyncio.to_thread(input,"Lat: "); lon_str=await asyncio.to_thread(input,"Lon: "); await bot.send_location(config.CHAT_ID, float(lat_str), float(lon_str)); print(colorize("[SENT]","green"))
+            try: lat_str=await asyncio.to_thread(input,"Lat: "); lon_str=await asyncio.to_thread(input,"Lon: "); await bot.send_location(config.CHAT_ID, float(lat_str), float(lon_str)); print(colorize("[SENT]","green"))
             except ValueError: print(colorize("[ERROR] Need numbers","red"))
             except Exception as e: print(colorize(f"[ERR] {e}","red"))
             await pause()
@@ -241,9 +241,6 @@ async def menu_admin():
         elif c=="1": await bot.set_chat_permissions(config.CHAT_ID, ChatPermissions(can_send_messages=False)); await pause()
         elif c=="2": await bot.set_chat_permissions(config.CHAT_ID, ChatPermissions(can_send_messages=True, can_send_media_messages=True)); await pause()
 
-# ==========================================
-# SECTIONS 6-10
-# ==========================================
 async def menu_bot_settings():
     while True:
         clear_screen(); draw_panel("6. SETTINGS", ["1. Commands", "2. Description", "0. Back"])
@@ -272,21 +269,55 @@ async def menu_help():
         elif c=="3": print("OSINT: Links for manual search."); await pause()
         elif c=="4": print("FAKES: Data generation."); await pause()
 
+# ==========================================
+# SECTION 9: MUSIC (EXPANDED)
+# ==========================================
 async def menu_music():
     global player
-    if not AUDIO_OK: print("Pyglet not installed!"); await pause(); return
+    if not AUDIO_OK: print(colorize("\n[ERROR] Pyglet not installed!", "red")); await pause(); return
     while True:
-        clear_screen(); draw_panel("9. MUSIC", ["1. Play", "2. Pause", "3. Stop", "0. Back"])
+        clear_screen()
+        draw_panel("9. MUSIC (PLAYER)", [
+            "1. Play track", "2. Pause / Resume", 
+            "3. Stop", "4. Volume UP (+10%)", 
+            "5. Volume DOWN (-10%)", "6. Status", 
+            "0. Back"
+        ])
+        
+        try:
+            is_playing = player.playing
+            vol = int(player.volume * 100)
+            print(colorize(f"[STATUS] Playing: {'Yes' if is_playing else 'No'} | Volume: {vol}%", "green"))
+        except: pass
+        
         c = await asyncio.to_thread(input, colorize("\nChoice: ", "green"))
         if c=="0": break
         elif c=="1":
             p = await asyncio.to_thread(input, "MP3 path: ")
-            try: player = pyglet.media.Player(); s = await asyncio.to_thread(pyglet.media.load, p, streaming=True); player.queue(s); player.play(); print("[PLAYING]")
-            except Exception as e: print(e)
+            try: 
+                player = pyglet.media.Player()
+                s = await asyncio.to_thread(pyglet.media.load, p, streaming=True)
+                player.queue(s)
+                player.play()
+                print(colorize("[PLAYING]", "green"))
+            except Exception as e: print(colorize(f"[ERROR] {e}", "red"))
             await pause()
-        elif c=="2": player.pause(); await pause()
-        elif c=="3": player.pause(); player.seek(0); await pause()
+        elif c=="2":
+            if player.playing: player.pause(); print(colorize("[PAUSED]", "green"))
+            else: player.play(); print(colorize("[RESUMED]", "green"))
+            await pause()
+        elif c=="3": 
+            player.pause(); player.seek(0); print(colorize("[STOPPED]", "green")); await pause()
+        elif c=="4": 
+            player.volume = min(1.0, player.volume + 0.1); print(colorize(f"[VOLUME: {int(player.volume*100)}%]", "green")); await pause()
+        elif c=="5": 
+            player.volume = max(0.0, player.volume - 0.1); print(colorize(f"[VOLUME: {int(player.volume*100)}%]", "green")); await pause()
+        elif c=="6":
+            print(colorize(f"Playing: {player.playing}\nVolume: {int(player.volume*100)}%", "yellow")); await pause()
 
+# ==========================================
+# SECTIONS 10-15
+# ==========================================
 async def menu_theme():
     global CURRENT_THEME
     while True:
@@ -299,9 +330,6 @@ async def menu_theme():
         elif c=="4": CURRENT_THEME="rainbow"
         print(colorize("[THEME CHANGED]", "green")); await pause()
 
-# ==========================================
-# SECTIONS 11-15
-# ==========================================
 async def menu_utils():
     while True:
         clear_screen(); draw_panel("11. UTILS", ["1. Base64", "2. Password", "3. Calc", "0. Back"])
@@ -369,11 +397,19 @@ async def menu_system():
         elif c=="1": up=int(time.time()-START_TIME); print(f"Uptime: {up//3600}h\nOS: {platform.system()}"); await pause()
 
 # ==========================================
-# SECTION 16: FAKE GENERATOR
+# SECTION 16: FAKE GENERATOR (EXPANDED)
 # ==========================================
 async def menu_fake_gen():
     while True:
-        clear_screen(); draw_panel("16. FAKE GEN", ["1. Person", "2. Card", "3. Auto", "4. Company", "5. Crypto", "0. Back"])
+        clear_screen()
+        draw_panel("16. FAKE GEN", [
+            "1. Person", "2. Card", 
+            "3. Auto", "4. Company", 
+            "5. Crypto", "6. Passport", 
+            "7. Driver Lic", "8. Medical", 
+            "9. Diploma", "10. Tech Data",
+            "0. Back"
+        ])
         c = await asyncio.to_thread(input, colorize("\nChoice: ", "green"))
         if c == "0": break
         try:
@@ -391,6 +427,16 @@ async def menu_fake_gen():
                 txt = f"🏢 <b>COMPANY</b>\nName: {random.choice(COMPANIES)}\nOGRN: <code>{random.randint(1000000000000, 9999999999999)}</code>"
             elif c == "5":
                 txt = f"🪙 <b>CRYPTO</b>\nBTC: <code>bc1q{''.join(random.choice('acdefghjklmnpqrstuvwxyz023456789') for _ in range(38))}</code>"
+            elif c == "6":
+                txt = f"🛂 <b>PASSPORT</b>\nSeries: <code>{random.randint(10,99)} {random.randint(10,99)}</code>\nNum: <code>{random.randint(100000,999999)}</code>\nDept Code: <code>{random.randint(100,999)}-{random.randint(1,99):03d}</code>"
+            elif c == "7":
+                txt = f"🪪 <b>DRIVER LIC</b>\nSeries/Num: <code>{random.randint(10,99)}{random.randint(10,99)} {random.randint(100000,999999)}</code>\nCategories: {', '.join(random.sample(['A', 'B', 'C', 'D'], random.randint(1,3)))}"
+            elif c == "8":
+                txt = f"🏥 <b>MEDICAL</b>\nBlood: {random.choice(['O(I)', 'A(II)', 'B(III)', 'AB(IV)'])} {random.choice(['+', '-'])}\nHeight: {random.randint(150,200)} cm\nWeight: {random.randint(50,120)} kg"
+            elif c == "9":
+                txt = f"🎓 <b>DIPLOMA</b>\nUni: {random.choice(['MSU', 'SPbSU', 'MIPT', 'HSE'])}\nSpecialty: {random.choice(['Programmer', 'Lawyer', 'Economist'])}\nNum: <code>{random.randint(100000,999999)}</code>"
+            elif c == "10":
+                txt = f"💻 <b>TECH DATA</b>\nIP: <code>{random.randint(1,255)}.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(0,255)}</code>\nMAC: <code>{':'.join(f'{random.randint(0, 255):02x}' for _ in range(6))}</code>\nUUID: <code>{uuid.uuid4()}</code>"
             else: continue
             
             await bot.send_message(config.CHAT_ID, txt, parse_mode="HTML")
@@ -399,7 +445,7 @@ async def menu_fake_gen():
         await pause()
 
 # ==========================================
-# SECTION 17: OSINT
+# SECTION 17: OSINT (EXPANDED)
 # ==========================================
 async def menu_osint():
     while True:
@@ -413,15 +459,15 @@ async def menu_osint():
         try:
             if c == "1":
                 t = re.sub(r'[^\d+]', '', target)
-                txt = f"📱 <b>OSINT: {t}</b>\n\n🔍 <b>Links:</b>\n• <a href='https://www.google.com/search?q={t}'>Google</a>\n• <a href='https://vk.com/search?c[section]=people&c[q]={t}'>VK</a>"
+                txt = f"📱 <b>OSINT: {t}</b>\n\n🔍 <b>Links:</b>\n• <a href='https://www.google.com/search?q={t}'>Google</a>\n• <a href='https://yandex.ru/search/?text={t}'>Yandex</a>\n• <a href='https://vk.com/search?c[section]=people&c[q]={t}'>VK</a>\n• <a href='https://ok.ru/dk?st.cmd=searchResult&st.query={t}'>OK</a>\n• <a href='https://www.truecaller.com/search/ru/{t}'>Truecaller</a>\n• <a href='https://www.avito.ru/rossiya?q={t}'>Avito</a>"
             elif c == "2":
                 user = target.split('@')[0]
-                txt = f"📧 <b>OSINT: {target}</b>\n\n🔍 <b>Links:</b>\n• <a href='https://vk.com/{user}'>VK</a>\n• <a href='https://github.com/{user}'>GitHub</a>"
+                txt = f"📧 <b>OSINT: {target}</b>\n\n🔍 <b>Links:</b>\n• <a href='https://vk.com/{user}'>VK</a>\n• <a href='https://github.com/{user}'>GitHub</a>\n• <a href='https://t.me/{user}'>Telegram</a>\n• <a href='https://instagram.com/{user}'>Instagram</a>\n• <a href='https://haveibeenpwned.com/unifiedsearch/{target}'>HIBP (Leaks)</a>"
             elif c == "3":
-                txt = f"🕵️ <b>OSINT: {target}</b>\n\n🔍 <b>Links:</b>\n• <a href='https://vk.com/{target}'>VK</a>\n• <a href='https://t.me/{target}'>Telegram</a>"
+                txt = f"🕵️ <b>OSINT: {target}</b>\n\n🔍 <b>Links:</b>\n• <a href='https://vk.com/{target}'>VK</a>\n• <a href='https://t.me/{target}'>Telegram</a>\n• <a href='https://github.com/{target}'>GitHub</a>\n• <a href='https://steamcommunity.com/id/{target}'>Steam</a>\n• <a href='https://www.tiktok.com/@{target}'>TikTok</a>\n• <a href='https://www.twitch.tv/{target}'>Twitch</a>"
             elif c == "4":
                 q = urllib.parse.quote(target)
-                txt = f"👤 <b>OSINT: {target}</b>\n\n🔍 <b>Links:</b>\n• <a href='https://www.google.com/search?q={q}'>Google</a>\n• <a href='https://yandex.ru/search/?text={q}'>Yandex</a>"
+                txt = f"👤 <b>OSINT: {target}</b>\n\n🔍 <b>Links:</b>\n• <a href='https://www.google.com/search?q={q}'>Google</a>\n• <a href='https://yandex.ru/search/?text={q}'>Yandex</a>\n• <a href='https://vk.com/search?c[section]=people&c[q]={q}'>VK People</a>\n• <a href='https://www.linkedin.com/pub/dir/{q}'>LinkedIn</a>"
             else: continue
             
             await bot.send_message(config.CHAT_ID, txt, parse_mode="HTML", disable_web_page_preview=True)
@@ -430,7 +476,7 @@ async def menu_osint():
         await pause()
 
 # ==========================================
-# MAIN MENU (ALL 17 SECTIONS)
+# MAIN MENU
 # ==========================================
 async def main():
     ask_window_size()
@@ -442,7 +488,7 @@ async def main():
     while True:
         try:
             clear_screen()
-            draw_panel("BRO-PANEL BOT V17.1", [
+            draw_panel("BRO-PANEL BOT V18", [
                 "1. TEXT", "10. THEME",
                 "2. MEDIA", "11. UTILITIES",
                 "3. SPAM ZONE", "12. TIMER",
