@@ -1,4 +1,4 @@
-# 🤖 BRO-PANEL BOT (V10)
+# 🤖 BRO-PANEL BOT (V23)
 
 A powerful console multitool for Telegram. Choose your language below!
 Мощный консольный мультитул для Телеграма. Выбери свой язык ниже!
