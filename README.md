@@ -13,5 +13,5 @@ A powerful console multitool for Telegram. Choose your language below!
 2. Read the instructions there / Прочитай инструкцию там.
 
 ---
-*💻 Code written together with **DeepSeek** AI. Bro, we made it!* 🫡
+*💻 Code written together with Bro. Bro, we made it!* 🫡
 
