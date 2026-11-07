@@ -1,0 +1,42 @@
+# 🤖 BRO-PANEL BOT (V10)
+
+A powerful console multitool for Telegram. This is not just a bot; it's a true Swiss Army knife for managing chats, sending media, spamming, and even playing music straight from your command line!
+
+## 🚀 Core Features:
+* **Section 1: Text** — Send regular, HTML-formatted, encrypted (Base64), and secret (spoiler) text. Includes a "Typing..." effect, reverse text, and CAPS.
+* **Section 2: Media** — The bot automatically detects the file type (photo, video, audio, sticker). Send locations, fake contacts, and video notes.
+* **Section 3: Spam Zone** — Text and file spam. Includes "Smart Spam" (random delays) and an "Infinite" mode. Also, stone spam 🗿.
+* **Section 4: Tricks** — Create polls, pin messages, and send interactive emojis (dice, darts, roulette, basketball, football).
+* **Section 5: Admin Panel** — Mute all members, change group title/description, kick and ban (by ID or @username), delete messages.
+* **Section 6: Settings** — Set bot commands (the `/` menu button in Telegram) and change the profile description.
+* **Section 7: Info** — Display bot profile, ping to servers, and chat stats.
+* **Section 8: Guide** — Built-in help that explains every single function.
+* **Section 9: Music** — Local audio player! Play your tracks, pause, and change the volume right from the console without alt-tabbing.
+
+## 🛠 Installation & Setup
+
+1. **Install Python** (version 3.9 or higher).
+2. **Download the project** and open a terminal in the bot's folder.
+3. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+
+
+Configure the bot
+
+Find config_example.py and rename it to config.py.
+
+Paste your token from @BotFather.
+
+Paste your CHAT_ID (you can get it using @userinfobot, don't forget the minus sign at the beginning).
+
+Run the bot:
+python main.py
+
+⚠️ Important Warnings
+VPN for Russia: If you are located in Russia, you MUST enable a VPN before running the bot. Telegram blocks direct requests to api.telegram.org from Russian IPs.
+
+Flood Control: Do not spam with a delay of less than 1 second. Telegram will throw a FloodWait error (banning the bot from sending messages for 5-10 minutes).
+
+Bot Rights: For the Admin Panel to work, the bot must be an administrator in the group
+
