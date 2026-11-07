@@ -1,4 +1,4 @@
-# 🤖 BRO-PANEL BOT (V21.1)
+# 🤖 BRO-PANEL BOT (V23)
 
 A powerful console multitool for Telegram. This is not just a bot; it's a true Swiss Army knife for managing chats, sending media, spamming, and even playing music straight from your command line!
 
@@ -22,11 +22,11 @@ A powerful console multitool for Telegram. This is not just a bot; it's a true S
 * **Section 17: OSINT Check** — Analyze phones, emails, nicknames, and full names. Expanded link list for search (Truecaller, Avito, HIBP, TikTok, Twitch, LinkedIn, etc.).
 * **Hidden Console** — The program window disappears from the system with `/sleep` and reappears with `/wakeup`.
 
-## 🕵️ Secret Telegram Control (Prank Mode)
+## 🕵️ Secret Control (Prank Mode)
 
-The bot now looks like a fully-fledged, smart AI. The local console hides in the system, and control is handled **entirely via Telegram commands**. Perfect for pranking your friends!
+The bot now looks like a fully-fledged, smart AI. The PC panel hides in the system, and control happens **entirely via Telegram commands**. Perfect for pranking friends!
 
-**⚠️ Important:** Send all commands to the **Direct Messages (DM)** with the bot so no one sees how you control it!
+**⚠️ Important:** Send all commands to **Direct Messages (DM)** with the bot so no one sees how you control it!
 
 ### 📜 List of secret commands:
 * `/help` — Show the list of all commands.
@@ -35,9 +35,9 @@ The bot now looks like a fully-fledged, smart AI. The local console hides in the
 * `/osint [type] [target]` — OSINT lookup (e.g., `/osint phone +79991234567`).
 * `/fake [type]` — Generate fake data (types: `person`, `card`, `car`).
 * `/status` — Check the bot's uptime.
-* `/sleep` — The bot says "Going offline" and **hides the console** from the system.
-* `/wakeup` — The bot wakes up and **restores the console** on the screen.
-* `/restart` — Full bot reboot.
+* `/sleep` — The bot sends "Bro, I'm going to sleep..." to you (DM) and "I'm going to sleep, bye everyone!" to the group, then **hides the console** from the system.
+* `/wakeup` — The bot sends "Bro, I woke up!" to you (DM) and "Good morning everyone, I woke up!" to the group, then **restores the console** on the screen.
+* `/restart` — Full bot reboot (sends messages to both DM and group).
   
 ## 🛠 Installation & Setup
 
