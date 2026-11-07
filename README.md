@@ -12,5 +12,4 @@ A powerful console multitool for Telegram. Choose your language below!
 1. Go to the folder with your language / Перейди в папку с нужным языком.
 2. Read the instructions there / Прочитай инструкцию там.
 
----
-*💻 Code written together with **DeepSeek** AI. Bro, we made it!* 🫡
+*💻 Code written together with **DeepSeek** AI. Bro, we made it!*
