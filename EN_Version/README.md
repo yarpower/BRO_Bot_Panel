@@ -20,17 +20,25 @@ A powerful console multitool for Telegram. This is not just a bot; it's a true S
 * **Section 15: System** — View the bot's uptime and current OS information.
 * **Section 16: Fake Generator** — Generate not only identities and cards, but also passports, driver's licenses, medical records, diplomas, and tech data (IP, MAC, UUID).
 * **Section 17: OSINT Check** — Analyze phones, emails, nicknames, and full names. Expanded link list for search (Truecaller, Avito, HIBP, TikTok, Twitch, LinkedIn, etc.).
+* **Hidden Console** — The program window disappears from the system with `/sleep` and reappears with `/wakeup`.
 
-## 📱 Remote Control from Telegram (NEW!)
+## 🕵️ Secret Telegram Control (Prank Mode)
 
-You can now manage the panel directly from the chat! The bot runs in the background and listens for commands:
+The bot now looks like a fully-fledged, smart AI. The local console hides in the system, and control is handled **entirely via Telegram commands**. Perfect for pranking your friends!
 
-* 🔄 `/bot_nahui_perezagruska` — **Restart Bot**. The script completely reboots (console closes and reopens).
-* 🔴 `/bot_nahui_virubis` — **Shutdown Panel**. The console hides in the system, but the bot stays online in the background.
-* 🟢 `/bot_nahui_zapuskaisa` — **Start Panel**. The console window pops back up.
+**⚠️ Important:** Send all commands to the **Direct Messages (DM)** with the bot so no one sees how you control it!
 
-*(Note: after starting the panel via Telegram, press Enter in the console to refresh the menu).*
-
+### 📜 List of secret commands:
+* `/help` — Show the list of all commands.
+* `/say [text]` — The bot will send your text to the chat (your friend will think the bot wrote it).
+* `/spam [count] [text]` — Spam the chat with the specified text.
+* `/osint [type] [target]` — OSINT lookup (e.g., `/osint phone +79991234567`).
+* `/fake [type]` — Generate fake data (types: `person`, `card`, `car`).
+* `/status` — Check the bot's uptime.
+* `/sleep` — The bot says "Going offline" and **hides the console** from the system.
+* `/wakeup` — The bot wakes up and **restores the console** on the screen.
+* `/restart` — Full bot reboot.
+  
 ## 🛠 Installation & Setup
 
 1. **Install Python** (version 3.9 or higher).
