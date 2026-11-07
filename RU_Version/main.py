@@ -9,6 +9,7 @@ import platform
 import string
 import re
 import urllib.parse
+import uuid
 from datetime import datetime
 
 try:
@@ -28,7 +29,7 @@ bot = Bot(token=config.BOT_TOKEN)
 START_TIME = time.time()
 
 # ==========================================
-# ДВИЖОК ЦВЕТОВ И ИНТЕРФЕЙСА
+# ЦВЕТА И ИНТЕРФЕЙС
 # ==========================================
 os.system('') 
 THEMES = {
@@ -129,7 +130,7 @@ def pause():
     return asyncio.to_thread(input)
 
 # ==========================================
-# БАЗЫ ДЛЯ ФЕЙК-ГЕНЕРАТОРА
+# БАЗЫ ДЛЯ ГЕНЕРАТОРА
 # ==========================================
 LAST_NAMES = ["Иванов", "Смирнов", "Кузнецов", "Попов", "Васильев", "Петров", "Соколов", "Михайлов"]
 FIRST_NAMES_M = ["Александр", "Дмитрий", "Максим", "Сергей", "Андрей", "Алексей", "Артём", "Илья"]
@@ -169,7 +170,7 @@ def gen_card():
     return " ".join(["".join(map(str, digits))[i:i+4] for i in range(0, 16, 4)])
 
 # ==========================================
-# РАЗДЕЛ 1: ТЕКСТ
+# РАЗДЕЛ 1-8 (СТАРЫЕ)
 # ==========================================
 async def menu_text():
     while True:
@@ -190,9 +191,6 @@ async def menu_text():
             except Exception as e: print(colorize(f"[ОШИБКА] {e}", "red"))
             await pause()
 
-# ==========================================
-# РАЗДЕЛ 2: МЕДИА
-# ==========================================
 async def menu_media():
     while True:
         clear_screen(); draw_panel("2. МЕДИА", ["1. Файл", "2. Гео", "3. Контакт", "4. Стикер", "5. Кружок", "0. Назад"])
@@ -205,18 +203,11 @@ async def menu_media():
             except Exception as e: print(colorize(f"[ОШИБКА] {e}", "red"))
             await pause()
         elif c=="2":
-            try:
-                lat_str = await asyncio.to_thread(input,"Широта: ")
-                lon_str = await asyncio.to_thread(input,"Долгота: ")
-                await bot.send_location(config.CHAT_ID, float(lat_str), float(lon_str))
-                print(colorize("[ОТПРАВЛЕНО]","green"))
+            try: lat_str=await asyncio.to_thread(input,"Широта: "); lon_str=await asyncio.to_thread(input,"Долгота: "); await bot.send_location(config.CHAT_ID, float(lat_str), float(lon_str)); print(colorize("[ОТПРАВЛЕНО]","green"))
             except ValueError: print(colorize("[ОШИБКА] Введи числа!","red"))
             except Exception as e: print(colorize(f"[ОШИБКА] {e}","red"))
             await pause()
 
-# ==========================================
-# РАЗДЕЛ 3: СПАМ
-# ==========================================
 async def menu_spam():
     while True:
         clear_screen(); draw_panel("3. СПАМ-ЗОНА", ["1. Текст", "2. Умный", "3. Бесконечный", "0. Назад"])
@@ -235,9 +226,6 @@ async def menu_spam():
             except Exception as e: print(colorize(f"[БАН] {e}", "red"))
             await pause()
 
-# ==========================================
-# РАЗДЕЛ 4: ФИШКИ
-# ==========================================
 async def menu_features():
     while True:
         clear_screen(); draw_panel("4. ФИШКИ", ["1. Опрос", "2. Закреп", "3. Кубик", "4. Рандом (1-100)", "0. Назад"])
@@ -248,14 +236,9 @@ async def menu_features():
             await bot.send_poll(config.CHAT_ID, q, [o1,o2]); await pause()
         elif c=="2":
             m = await bot.send_message(config.CHAT_ID, "Закреплено!"); await bot.pin_chat_message(config.CHAT_ID, m.message_id); await pause()
-        elif c=="3":
-            await bot.send_dice(config.CHAT_ID, emoji="🎲"); await pause()
-        elif c=="4":
-            await bot.send_message(config.CHAT_ID, f"Число: {random.randint(1,100)}"); await pause()
+        elif c=="3": await bot.send_dice(config.CHAT_ID, emoji="🎲"); await pause()
+        elif c=="4": await bot.send_message(config.CHAT_ID, f"Число: {random.randint(1,100)}"); await pause()
 
-# ==========================================
-# РАЗДЕЛ 5: АДМИНКА
-# ==========================================
 async def menu_admin():
     while True:
         clear_screen(); draw_panel("5. АДМИНКА", ["1. Мут всем", "2. Размут", "3. Сменить название", "4. Бан по ID", "0. Назад"])
@@ -271,29 +254,22 @@ async def menu_admin():
             except Exception as e: print(e)
             await pause()
 
-# ==========================================
-# РАЗДЕЛ 6-10
-# ==========================================
 async def menu_bot_settings():
     while True:
         clear_screen(); draw_panel("6. НАСТРОЙКИ", ["1. Команды", "2. Описание", "0. Назад"])
         c = await asyncio.to_thread(input, colorize("\nВыбор: ", "green"))
         if c=="0": break
         elif c=="1": await bot.set_my_commands([BotCommand(command="start", description="Start")]); await pause()
-        elif c=="2":
-            d=await asyncio.to_thread(input,"Описание: "); await bot.set_my_description(d); await pause()
+        elif c=="2": d=await asyncio.to_thread(input,"Описание: "); await bot.set_my_description(d); await pause()
 
 async def menu_settings():
     while True:
         clear_screen(); draw_panel("7. ИНФО", ["1. Профиль", "2. Пинг", "3. Инфо чата", "0. Назад"])
         c = await asyncio.to_thread(input, colorize("\nВыбор: ", "green"))
         if c=="0": break
-        elif c=="1":
-            me = await bot.get_me(); print(f"Имя: {me.first_name}\nЮзер: @{me.username}"); await pause()
-        elif c=="2":
-            st=time.time(); await bot.get_me(); print(f"Пинг: {round((time.time()-st)*1000, 2)} мс"); await pause()
-        elif c=="3":
-            ch=await bot.get_chat(config.CHAT_ID); print(f"Название: {ch.title}\nID: {ch.id}"); await pause()
+        elif c=="1": me=await bot.get_me(); print(f"Имя: {me.first_name}\nЮзер: @{me.username}"); await pause()
+        elif c=="2": st=time.time(); await bot.get_me(); print(f"Пинг: {round((time.time()-st)*1000, 2)} мс"); await pause()
+        elif c=="3": ch=await bot.get_chat(config.CHAT_ID); print(f"Название: {ch.title}\nID: {ch.id}"); await pause()
 
 async def menu_help():
     while True:
@@ -306,21 +282,56 @@ async def menu_help():
         elif c=="3": print("OSINT: Ссылки для ручного поиска."); await pause()
         elif c=="4": print("ФЕЙКИ: Генерация данных (только для тестов!)."); await pause()
 
+# ==========================================
+# РАЗДЕЛ 9: МУЗЫКА (РАСШИРЕННЫЙ)
+# ==========================================
 async def menu_music():
     global player
-    if not AUDIO_OK: print("Pyglet не установлен!"); await pause(); return
+    if not AUDIO_OK: print(colorize("\n[ОШИБКА] Pyglet не установлен!", "red")); await pause(); return
     while True:
-        clear_screen(); draw_panel("9. МУЗЫКА", ["1. Включить", "2. Пауза", "3. Стоп", "0. Назад"])
+        clear_screen()
+        draw_panel("9. МУЗЫКА (ПЛЕЕР)", [
+            "1. Включить трек", "2. Пауза / Продолжить", 
+            "3. Стоп", "4. Громче (+10%)", 
+            "5. Тише (-10%)", "6. Статус", 
+            "0. Назад"
+        ])
+        
+        # Показываем статус внизу панели
+        try:
+            is_playing = player.playing
+            vol = int(player.volume * 100)
+            print(colorize(f"[СТАТУС] Играет: {'Да' if is_playing else 'Нет'} | Громкость: {vol}%", "green"))
+        except: pass
+        
         c = await asyncio.to_thread(input, colorize("\nВыбор: ", "green"))
         if c=="0": break
         elif c=="1":
             p = await asyncio.to_thread(input, "Путь к mp3: ")
-            try: player = pyglet.media.Player(); s = await asyncio.to_thread(pyglet.media.load, p, streaming=True); player.queue(s); player.play(); print("[ИГРАЕТ]")
-            except Exception as e: print(e)
+            try: 
+                player = pyglet.media.Player()
+                s = await asyncio.to_thread(pyglet.media.load, p, streaming=True)
+                player.queue(s)
+                player.play()
+                print(colorize("[ИГРАЕТ]", "green"))
+            except Exception as e: print(colorize(f"[ОШИБКА] {e}", "red"))
             await pause()
-        elif c=="2": player.pause(); await pause()
-        elif c=="3": player.pause(); player.seek(0); await pause()
+        elif c=="2":
+            if player.playing: player.pause(); print(colorize("[ПАУЗА]", "green"))
+            else: player.play(); print(colorize("[ПРОДОЛЖАЕМ]", "green"))
+            await pause()
+        elif c=="3": 
+            player.pause(); player.seek(0); print(colorize("[СТОП]", "green")); await pause()
+        elif c=="4": 
+            player.volume = min(1.0, player.volume + 0.1); print(colorize(f"[ГРОМКОСТЬ: {int(player.volume*100)}%]", "green")); await pause()
+        elif c=="5": 
+            player.volume = max(0.0, player.volume - 0.1); print(colorize(f"[ГРОМКОСТЬ: {int(player.volume*100)}%]", "green")); await pause()
+        elif c=="6":
+            print(colorize(f"Играет: {player.playing}\nГромкость: {int(player.volume*100)}%", "yellow")); await pause()
 
+# ==========================================
+# РАЗДЕЛ 10-15
+# ==========================================
 async def menu_theme():
     global CURRENT_THEME
     while True:
@@ -333,9 +344,6 @@ async def menu_theme():
         elif c=="4": CURRENT_THEME="rainbow"
         print(colorize("[ТЕМА ИЗМЕНЕНА]", "green")); await pause()
 
-# ==========================================
-# РАЗДЕЛ 11-15
-# ==========================================
 async def menu_utils():
     while True:
         clear_screen(); draw_panel("11. УТИЛИТЫ", ["1. Base64 Декодер", "2. Пароль", "3. Калькулятор", "0. Назад"])
@@ -415,11 +423,19 @@ async def menu_system():
             await pause()
 
 # ==========================================
-# РАЗДЕЛ 16: ГЕНЕРАТОР ФЕЙКОВ
+# РАЗДЕЛ 16: ГЕНЕРАТОР ФЕЙКОВ (РАСШИРЕННЫЙ)
 # ==========================================
 async def menu_fake_gen():
     while True:
-        clear_screen(); draw_panel("16. ФЕЙК-ГЕНЕРАТОР", ["1. Личность РФ", "2. Карта", "3. Авто", "4. Компания", "5. Крипта", "0. Назад"])
+        clear_screen()
+        draw_panel("16. ФЕЙК-ГЕНЕРАТОР", [
+            "1. Личность РФ", "2. Банк. Карта", 
+            "3. Автомобиль", "4. Компания", 
+            "5. Крипта", "6. Паспорт", 
+            "7. Вод. Права", "8. Мед. Карта", 
+            "9. Диплом", "10. Тех. Данные",
+            "0. Назад"
+        ])
         c = await asyncio.to_thread(input, colorize("\nВыбор: ", "green"))
         if c == "0": break
         try:
@@ -432,11 +448,21 @@ async def menu_fake_gen():
                 b = random.choice(BANKS)
                 txt = f"💳 <b>КАРТА</b>\nБанк: {b[0]}\nНомер: <code>{gen_card()}</code>\nСрок: {random.randint(1,12):02d}/{random.randint(27,32)}\nCVV: <code>{random.randint(100,999)}</code>"
             elif c == "3":
-                txt = f"🚗 <b>АВТО</b>\nМарка: {random.choice(CAR_BRANDS)}\nVIN: <code>{''.join(random.choice('ABCDEFGHJKLMNPRSTUVWXYZ0123456789') for _ in range(17))}</code>"
+                txt = f"🚗 <b>АВТО</b>\nМарка: {random.choice(CAR_BRANDS)}\nГод: {random.randint(2000,2024)}\nVIN: <code>{''.join(random.choice('ABCDEFGHJKLMNPRSTUVWXYZ0123456789') for _ in range(17))}</code>\nНомер: {random.choice('АВЕКМНОРСТУХ')}{random.randint(100,999)}{random.choice('АВЕКМНОРСТУХ')}{random.choice('АВЕКМНОРСТУХ')} {random.randint(1,199):02d}"
             elif c == "4":
-                txt = f"🏢 <b>КОМПАНИЯ</b>\nНазвание: {random.choice(COMPANIES)}\nОГРН: <code>{random.randint(1000000000000, 9999999999999)}</code>"
+                txt = f"🏢 <b>КОМПАНИЯ</b>\nНазвание: {random.choice(COMPANIES)}\nОГРН: <code>{random.randint(1000000000000, 9999999999999)}</code>\nИНН: <code>{gen_inn()}</code>\nКПП: <code>{random.randint(100000000, 999999999)}</code>"
             elif c == "5":
-                txt = f"🪙 <b>КРИПТА</b>\nBTC: <code>bc1q{''.join(random.choice('acdefghjklmnpqrstuvwxyz023456789') for _ in range(38))}</code>"
+                txt = f"🪙 <b>КРИПТА</b>\nBTC: <code>bc1q{''.join(random.choice('acdefghjklmnpqrstuvwxyz023456789') for _ in range(38))}</code>\nETH: <code>0x{''.join(random.choice('0123456789abcdef') for _ in range(40))}</code>"
+            elif c == "6":
+                txt = f"🛂 <b>ПАСПОРТ РФ</b>\nСерия: <code>{random.randint(10,99)} {random.randint(10,99)}</code>\nНомер: <code>{random.randint(100000,999999)}</code>\nКод подразделения: <code>{random.randint(100,999)}-{random.randint(1,99):03d}</code>\nДата выдачи: {random.randint(1,28):02d}.{random.randint(1,12):02d}.{random.randint(2010,2024)}"
+            elif c == "7":
+                txt = f"🪪 <b>ВОДИТЕЛЬСКИЕ ПРАВА</b>\nСерия/Номер: <code>{random.randint(10,99)}{random.randint(10,99)} {random.randint(100000,999999)}</code>\nКатегории: {', '.join(random.sample(['A', 'B', 'C', 'D', 'BE', 'CE', 'DE'], random.randint(1,3)))}\nДата выдачи: {random.randint(1,28):02d}.{random.randint(1,12):02d}.{random.randint(2010,2024)}"
+            elif c == "8":
+                txt = f"🏥 <b>МЕД. КАРТА</b>\nГруппа крови: {random.choice(['O(I)', 'A(II)', 'B(III)', 'AB(IV)'])} {random.choice(['+', '-'])}\nРост: {random.randint(150,200)} см\nВес: {random.randint(50,120)} кг\nАллергии: {random.choice(['Нет', 'Пыль', 'Пенициллин', 'Орехи'])}"
+            elif c == "9":
+                txt = f"🎓 <b>ДИПЛОМ</b>\nВУЗ: {random.choice(['МГУ', 'СПбГУ', 'МФТИ', 'ВШЭ', 'МГТУ'])}\nСпециальность: {random.choice(['Программист', 'Юрист', 'Экономист', 'Инженер'])}\nНомер: <code>{random.randint(100000,999999)}</code>\nГод: {random.randint(2010,2024)}"
+            elif c == "10":
+                txt = f"💻 <b>ТЕХ. ДАННЫЕ</b>\nIP: <code>{random.randint(1,255)}.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(0,255)}</code>\nMAC: <code>{':'.join(f'{random.randint(0, 255):02x}' for _ in range(6))}</code>\nUUID: <code>{uuid.uuid4()}</code>"
             else: continue
             
             await bot.send_message(config.CHAT_ID, txt, parse_mode="HTML")
@@ -445,7 +471,7 @@ async def menu_fake_gen():
         await pause()
 
 # ==========================================
-# РАЗДЕЛ 17: OSINT-ПРОБИВ
+# РАЗДЕЛ 17: OSINT-ПРОБИВ (РАСШИРЕННЫЙ)
 # ==========================================
 async def menu_osint():
     while True:
@@ -459,15 +485,15 @@ async def menu_osint():
         try:
             if c == "1":
                 t = re.sub(r'[^\d+]', '', target)
-                txt = f"📱 <b>ПРОБИВ: {t}</b>\n\n🔍 <b>Ссылки:</b>\n• <a href='https://www.google.com/search?q={t}'>Google</a>\n• <a href='https://vk.com/search?c[section]=people&c[q]={t}'>VK</a>\n• <a href='https://ok.ru/dk?st.cmd=searchResult&st.query={t}'>OK</a>"
+                txt = f"📱 <b>ПРОБИВ: {t}</b>\n\n🔍 <b>Ссылки:</b>\n• <a href='https://www.google.com/search?q={t}'>Google</a>\n• <a href='https://yandex.ru/search/?text={t}'>Yandex</a>\n• <a href='https://vk.com/search?c[section]=people&c[q]={t}'>VK</a>\n• <a href='https://ok.ru/dk?st.cmd=searchResult&st.query={t}'>OK</a>\n• <a href='https://www.avito.ru/rossiya?q={t}'>Avito</a>\n• <a href='https://www.truecaller.com/search/ru/{t}'>Truecaller</a>\n• <a href='https://getcontact.com/ru/'>GetContact</a>"
             elif c == "2":
                 user = target.split('@')[0]
-                txt = f"📧 <b>ПРОБИВ: {target}</b>\n\n🔍 <b>Ссылки:</b>\n• <a href='https://vk.com/{user}'>VK</a>\n• <a href='https://github.com/{user}'>GitHub</a>\n• <a href='https://t.me/{user}'>Telegram</a>"
+                txt = f"📧 <b>ПРОБИВ: {target}</b>\n\n🔍 <b>Ссылки:</b>\n• <a href='https://www.google.com/search?q={target}'>Google</a>\n• <a href='https://vk.com/{user}'>VK</a>\n• <a href='https://github.com/{user}'>GitHub</a>\n• <a href='https://t.me/{user}'>Telegram</a>\n• <a href='https://instagram.com/{user}'>Instagram</a>\n• <a href='https://twitter.com/{user}'>Twitter</a>\n• <a href='https://haveibeenpwned.com/unifiedsearch/{target}'>HIBP (Утечки)</a>"
             elif c == "3":
-                txt = f"🕵️ <b>ПРОБИВ: {target}</b>\n\n🔍 <b>Ссылки:</b>\n• <a href='https://vk.com/{target}'>VK</a>\n• <a href='https://t.me/{target}'>Telegram</a>\n• <a href='https://github.com/{target}'>GitHub</a>\n• <a href='https://steamcommunity.com/id/{target}'>Steam</a>"
+                txt = f"🕵️ <b>ПРОБИВ: {target}</b>\n\n🔍 <b>Ссылки:</b>\n• <a href='https://vk.com/{target}'>VK</a>\n• <a href='https://t.me/{target}'>Telegram</a>\n• <a href='https://github.com/{target}'>GitHub</a>\n• <a href='https://steamcommunity.com/id/{target}'>Steam</a>\n• <a href='https://www.tiktok.com/@{target}'>TikTok</a>\n• <a href='https://www.twitch.tv/{target}'>Twitch</a>\n• <a href='https://www.reddit.com/user/{target}/'>Reddit</a>\n• <a href='https://www.pinterest.com/{target}/'>Pinterest</a>"
             elif c == "4":
                 q = urllib.parse.quote(target)
-                txt = f"👤 <b>ПРОБИВ: {target}</b>\n\n🔍 <b>Ссылки:</b>\n• <a href='https://www.google.com/search?q={q}'>Google</a>\n• <a href='https://yandex.ru/search/?text={q}'>Yandex</a>\n• <a href='https://vk.com/search?c[section]=people&c[q]={q}'>VK Люди</a>"
+                txt = f"👤 <b>ПРОБИВ: {target}</b>\n\n🔍 <b>Ссылки:</b>\n• <a href='https://www.google.com/search?q={q}'>Google</a>\n• <a href='https://yandex.ru/search/?text={q}'>Yandex</a>\n• <a href='https://vk.com/search?c[section]=people&c[q]={q}'>VK Люди</a>\n• <a href='https://ok.ru/dk?st.cmd=searchResult&st.query={q}'>OK Люди</a>\n• <a href='https://www.linkedin.com/pub/dir/{q}'>LinkedIn</a>"
             else: continue
             
             await bot.send_message(config.CHAT_ID, txt, parse_mode="HTML", disable_web_page_preview=True)
@@ -476,7 +502,7 @@ async def menu_osint():
         await pause()
 
 # ==========================================
-# ГЛАВНОЕ МЕНЮ (ВСЕ 17 РАЗДЕЛОВ)
+# ГЛАВНОЕ МЕНЮ
 # ==========================================
 async def main():
     ask_window_size()
@@ -488,7 +514,7 @@ async def main():
     while True:
         try:
             clear_screen()
-            draw_panel("БРО-ПАНЕЛЬ БОТА V17.1", [
+            draw_panel("БРО-ПАНЕЛЬ БОТА V18", [
                 "1. ТЕКСТ", "10. СМЕНА ТЕМЫ",
                 "2. МЕДИА", "11. УТИЛИТЫ",
                 "3. СПАМ-ЗОНА", "12. ТАЙМЕР (ОТЛОЖКА)",
