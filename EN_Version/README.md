@@ -1,4 +1,4 @@
-# 🤖 BRO-PANEL BOT (V14.1)
+# 🤖 BRO-PANEL BOT (V17.1)
 
 A powerful console multitool for Telegram. This is not just a bot; it's a true Swiss Army knife for managing chats, sending media, spamming, and even playing music straight from your command line!
 
@@ -13,6 +13,13 @@ A powerful console multitool for Telegram. This is not just a bot; it's a true S
 * **Section 8: Guide** — Built-in help that explains every single function.
 * **Section 9: Music** — Local audio player! Play your tracks, pause, and change the volume right from the console without alt-tabbing.
 * **Section 10: Theme Settings** — Customize your console appearance! Choose from 6 colors (red, green, blue, etc.) or a "Rainbow" mode for color-shifting text.
+* **Section 11: Utilities** — Base64 decoder, strong password generator, and an in-console calculator.
+* **Section 12: Timer (Delayed)** — Send messages with a custom delay in the background without freezing the panel.
+* **Section 13: Special Ops** — Coin flip (Heads/Tails), Rock-Paper-Scissors, and custom emoji spam.
+* **Section 14: User Info** — Retrieve Telegram user information by ID or @username (name, status).
+* **Section 15: System** — View the bot's uptime and current OS information.
+* **Section 16: Fake Generator** — Generate fake identities, bank cards (using the Luhn algorithm), vehicles, companies, and crypto wallets.
+* **Section 17: OSINT Check** — Analyze phones, emails, nicknames, and full names with generated links for manual search.
 
 ## 🛠 Installation & Setup
 
